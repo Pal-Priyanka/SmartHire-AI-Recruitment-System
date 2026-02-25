@@ -24,40 +24,41 @@ const Jobs = () => {
         }
     }, [allJobs, searchedQuery]);
 
-    return (
-        <div>
-            <Navbar />
-            <div className='max-w-7xl mx-auto mt-5'>
-                <div className='flex gap-5'>
-                    <div className='w-20%'>
-                        <FilterCard />
-                    </div>
-                    {
-                        filterJobs.length <= 0 ? <span>Job not found</span> : (
-                            <div className='flex-1 h-[88vh] overflow-y-auto pb-5'>
-                                <div className='grid grid-cols-3 gap-4'>
-                                    {
-                                        filterJobs.map((job) => (
-                                            <motion.div
-                                                initial={{ opacity: 0, x: 100 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: -100 }}
-                                                transition={{ duration: 0.3 }}
-                                                key={job?._id}>
-                                                <Job job={job} />
-                                            </motion.div>
-                                        ))
-                                    }
-                                </div>
-                            </div>
-                        )
-                    }
+    <div className='min-h-screen bg-[#0F172A] text-white'>
+        <Navbar />
+        <div className='max-w-7xl mx-auto py-10 px-4'>
+            <div className='flex flex-col md:flex-row gap-8'>
+                <div className='md:w-1/4'>
+                    <FilterCard />
                 </div>
+                {
+                    filterJobs.length <= 0 ? (
+                        <div className='flex-1 flex flex-col items-center justify-center py-20 bg-[#1E293B] rounded-2xl border border-gray-800 border-dashed'>
+                            <span className='text-gray-500 text-xl font-medium'>No matching opportunities found</span>
+                            <p className='text-gray-600 mt-2'>Try adjusting your filters to find more roles.</p>
+                        </div>
+                    ) : (
+                        <div className='flex-1 h-[88vh] overflow-y-auto pb-5 custom-scrollbar'>
+                            <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6'>
+                                {
+                                    filterJobs.map((job) => (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            transition={{ duration: 0.3 }}
+                                            key={job?._id}>
+                                            <Job job={job} />
+                                        </motion.div>
+                                    ))
+                                }
+                            </div>
+                        </div>
+                    )
+                }
             </div>
-
-
         </div>
-    )
+    </div>
 }
 
 export default Jobs

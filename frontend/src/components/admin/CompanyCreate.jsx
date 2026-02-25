@@ -16,13 +16,13 @@ const CompanyCreate = () => {
     const dispatch = useDispatch();
     const registerNewCompany = async () => {
         try {
-            const res = await axios.post(`${COMPANY_API_END_POINT}/register`, {companyName}, {
-                headers:{
-                    'Content-Type':'application/json'
+            const res = await axios.post(`${COMPANY_API_END_POINT}/register`, { companyName }, {
+                headers: {
+                    'Content-Type': 'application/json'
                 },
-                withCredentials:true
+                withCredentials: true
             });
-            if(res?.data?.success){
+            if (res?.data?.success) {
                 dispatch(setSingleCompany(res.data.company));
                 toast.success(res.data.message);
                 const companyId = res?.data?.company?._id;
@@ -44,8 +44,8 @@ const CompanyCreate = () => {
                 <Label>Company Name</Label>
                 <Input
                     type="text"
-                    className="my-2"
-                    placeholder="JobHunt, Microsoft etc."
+                    className="my-2 bg-[#1E293B] border-gray-700 text-white"
+                    placeholder="SmartHire, Microsoft etc."
                     onChange={(e) => setCompanyName(e.target.value)}
                 />
                 <div className='flex items-center gap-2 my-10'>

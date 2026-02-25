@@ -75,6 +75,10 @@ const appRouter = createBrowserRouter([
     path: "/admin/analytics",
     element: <ProtectedRoute><RecruiterAnalytics /></ProtectedRoute>
   },
+  {
+    path: "/admin/interviews",
+    element: <ProtectedRoute><RecruiterInterviews /></ProtectedRoute>
+  },
 
 ])
 function App() {
