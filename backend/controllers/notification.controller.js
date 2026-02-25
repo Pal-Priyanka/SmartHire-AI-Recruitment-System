@@ -1,4 +1,5 @@
 import { Notification } from "../models/notification.model.js";
+import { io, getReceiverSocketId } from "../socket/socket.js";
 
 export const getNotifications = async (req, res) => {
     try {
@@ -26,7 +27,15 @@ export const markAsRead = async (req, res) => {
 
 export const createNotification = async (recipient, type, title, message, link = "") => {
     try {
-        await Notification.create({ recipient, type, title, message, link });
+        const notification = await Notification.create({ recipient, type, title, message, link });
+
+        // Emit real-time notification via Socket.io
+        const receiverSocketId = getReceiverSocketId(recipient);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("new_notification", notification);
+        }
+
+        return notification;
     } catch (error) {
         console.log("Error creating notification:", error);
     }

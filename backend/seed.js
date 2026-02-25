@@ -70,10 +70,21 @@ const seedData = async () => {
             jobs.forEach((job, jIdx) => {
                 // Not every candidate applies to every job
                 if ((cIdx + jIdx) % 2 === 0) {
+                    const score = 60 + Math.floor(Math.random() * 35); // Realistic high scores
                     applications.push({
                         job: job._id,
                         applicant: candidate._id,
-                        status: statuses[Math.floor(Math.random() * statuses.length)]
+                        status: statuses[Math.floor(Math.random() * statuses.length)],
+                        aiScore: score,
+                        scoreBreakdown: {
+                            skills: score - 5,
+                            experience: 80,
+                            education: 75,
+                            profile: 90
+                        },
+                        statusHistory: [
+                            { status: 'applied', timestamp: new Date(Date.now() - 86400000 * 2) }
+                        ]
                     });
                 }
             });

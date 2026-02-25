@@ -1,5 +1,6 @@
 import { Interview } from "../models/interview.model.js";
 import { Application } from "../models/application.model.js";
+import { createNotification } from "./notification.controller.js";
 
 export const scheduleInterview = async (req, res) => {
     try {
@@ -52,6 +53,15 @@ export const scheduleInterview = async (req, res) => {
             status: 'interview scheduled',
             $push: { statusHistory: { status: 'interview scheduled' } }
         });
+
+        // Create notification for candidate
+        await createNotification(
+            candidateId,
+            'interview',
+            'Interview Scheduled!',
+            `You have a new ${type} interview scheduled for ${scheduledDate} at ${scheduledTime}.`,
+            `/profile`
+        );
 
         return res.status(201).json({ message: "Interview scheduled successfully", interview, success: true });
     } catch (error) {
