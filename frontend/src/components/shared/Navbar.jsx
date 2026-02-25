@@ -6,9 +6,10 @@ import { LogOut, User2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import axios from 'axios'
-import { USER_API_END_POINT } from '@/utils/constant'
+import { AUTH_API_END_POINT } from '@/utils/constant'
 import { setUser } from '@/redux/authSlice'
 import { toast } from 'sonner'
+import NotificationBell from './NotificationBell'
 
 const Navbar = () => {
     const { user } = useSelector(store => store.auth);
@@ -17,7 +18,7 @@ const Navbar = () => {
 
     const logoutHandler = async () => {
         try {
-            const res = await axios.get(`${USER_API_END_POINT}/logout`, { withCredentials: true });
+            const res = await axios.get(`${AUTH_API_END_POINT}/logout`, { withCredentials: true });
             if (res.data.success) {
                 dispatch(setUser(null));
                 navigate("/");
@@ -29,10 +30,10 @@ const Navbar = () => {
         }
     }
     return (
-        <div className='bg-white'>
+        <div className='bg-[#0F172A] border-b border-gray-800 text-white sticky top-0 z-50'>
             <div className='flex items-center justify-between mx-auto max-w-7xl h-16'>
                 <div>
-                    <h1 className='text-2xl font-bold'>Job<span className='text-[#F83002]'>Portal</span></h1>
+                    <h1 className='text-2xl font-bold'>Smart<span className='text-[#6366F1]'>Hire</span></h1>
                 </div>
                 <div className='flex items-center gap-12'>
                     <ul className='flex font-medium items-center gap-5'>
@@ -41,6 +42,7 @@ const Navbar = () => {
                                 <>
                                     <li><Link to="/admin/companies">Companies</Link></li>
                                     <li><Link to="/admin/jobs">Jobs</Link></li>
+                                    <li><Link to="/admin/analytics">Analytics</Link></li>
                                 </>
                             ) : (
                                 <>
@@ -50,14 +52,13 @@ const Navbar = () => {
                                 </>
                             )
                         }
-
-
                     </ul>
+                    {user && <NotificationBell />}
                     {
                         !user ? (
                             <div className='flex items-center gap-2'>
-                                <Link to="/login"><Button variant="outline">Login</Button></Link>
-                                <Link to="/signup"><Button className="bg-[#6A38C2] hover:bg-[#5b30a6]">Signup</Button></Link>
+                                <Link to="/login"><Button variant="ghost" className="text-white hover:bg-white/10">Login</Button></Link>
+                                <Link to="/signup"><Button className="bg-[#6366F1] hover:bg-[#4f46e5]">Signup</Button></Link>
                             </div>
                         ) : (
                             <Popover>
@@ -66,7 +67,7 @@ const Navbar = () => {
                                         <AvatarImage src={user?.profile?.profilePhoto} alt="@shadcn" />
                                     </Avatar>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-80">
+                                <PopoverContent className="w-80 bg-[#1E293B] border-gray-700 text-white">
                                     <div className=''>
                                         <div className='flex gap-2 space-y-2'>
                                             <Avatar className="cursor-pointer">
@@ -74,22 +75,22 @@ const Navbar = () => {
                                             </Avatar>
                                             <div>
                                                 <h4 className='font-medium'>{user?.fullname}</h4>
-                                                <p className='text-sm text-muted-foreground'>{user?.profile?.bio}</p>
+                                                <p className='text-sm text-gray-400'>{user?.profile?.bio}</p>
                                             </div>
                                         </div>
-                                        <div className='flex flex-col my-2 text-gray-600'>
+                                        <div className='flex flex-col my-2 text-gray-200'>
                                             {
-                                                user && user.role === 'student' && (
+                                                user && user.role === 'candidate' && (
                                                     <div className='flex w-fit items-center gap-2 cursor-pointer'>
-                                                        <User2 />
-                                                        <Button variant="link"> <Link to="/profile">View Profile</Link></Button>
+                                                        <User2 className="text-gray-400" />
+                                                        <Button variant="link" className="text-gray-200"> <Link to="/profile">View Profile</Link></Button>
                                                     </div>
                                                 )
                                             }
 
                                             <div className='flex w-fit items-center gap-2 cursor-pointer'>
-                                                <LogOut />
-                                                <Button onClick={logoutHandler} variant="link">Logout</Button>
+                                                <LogOut className="text-gray-400" />
+                                                <Button onClick={logoutHandler} variant="link" className="text-gray-200">Logout</Button>
                                             </div>
                                         </div>
                                     </div>

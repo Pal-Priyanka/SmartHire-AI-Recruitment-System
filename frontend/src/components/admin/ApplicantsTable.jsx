@@ -28,42 +28,48 @@ const ApplicantsTable = () => {
 
     return (
         <div>
-            <Table>
-                <TableCaption>A list of your recent applied user</TableCaption>
+            <Table className="text-white">
+                <TableCaption className="text-gray-500">A list of recently applied candidates</TableCaption>
                 <TableHeader>
-                    <TableRow>
-                        <TableHead>FullName</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead>Resume</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
+                    <TableRow className="border-gray-800 hover:bg-transparent">
+                        <TableHead className="text-gray-400">FullName</TableHead>
+                        <TableHead className="text-gray-400">Email</TableHead>
+                        <TableHead className="text-gray-400">Contact</TableHead>
+                        <TableHead className="text-gray-400">Resume</TableHead>
+                        <TableHead className="text-gray-400">AI Score</TableHead>
+                        <TableHead className="text-gray-400">Date</TableHead>
+                        <TableHead className="text-right text-gray-400">Action</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {
                         applicants && applicants?.applications?.map((item) => (
-                            <tr key={item._id}>
-                                <TableCell>{item?.applicant?.fullname}</TableCell>
+                            <TableRow key={item._id} className="border-gray-800 hover:bg-white/5">
+                                <TableCell className="font-medium">{item?.applicant?.fullname}</TableCell>
                                 <TableCell>{item?.applicant?.email}</TableCell>
                                 <TableCell>{item?.applicant?.phoneNumber}</TableCell>
                                 <TableCell >
                                     {
-                                        item.applicant?.profile?.resume ? <a className="text-blue-600 cursor-pointer" href={item?.applicant?.profile?.resume} target="_blank" rel="noopener noreferrer">{item?.applicant?.profile?.resumeOriginalName}</a> : <span>NA</span>
+                                        item.applicant?.profile?.resume ? <a className="text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer" href={item?.applicant?.profile?.resume} target="_blank" rel="noopener noreferrer">{item?.applicant?.profile?.resumeOriginalName}</a> : <span className="text-gray-500">NA</span>
                                     }
                                 </TableCell>
-                                <TableCell>{item?.applicant.createdAt.split("T")[0]}</TableCell>
-                                <TableCell className="float-right cursor-pointer">
+                                <TableCell>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.aiScore >= 70 ? 'bg-emerald-500/10 text-emerald-400' : item.aiScore >= 40 ? 'bg-amber-500/10 text-amber-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                                        {item.aiScore || 0}%
+                                    </span>
+                                </TableCell>
+                                <TableCell className="text-gray-400">{item?.applicant.createdAt.split("T")[0]}</TableCell>
+                                <TableCell className="text-right cursor-pointer">
                                     <Popover>
                                         <PopoverTrigger>
-                                            <MoreHorizontal />
+                                            <MoreHorizontal className="text-gray-400 hover:text-white" />
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-32">
+                                        <PopoverContent className="w-40 bg-[#1E293B] border-gray-700 text-white">
                                             {
                                                 shortlistingStatus.map((status, index) => {
                                                     return (
-                                                        <div onClick={() => statusHandler(status, item?._id)} key={index} className='flex w-fit items-center my-2 cursor-pointer'>
-                                                            <span>{status}</span>
+                                                        <div onClick={() => statusHandler(status, item?._id)} key={index} className='flex items-center gap-2 w-full px-2 py-1.5 hover:bg-white/10 rounded-md cursor-pointer transition-colors'>
+                                                            <span className="text-sm">{status}</span>
                                                         </div>
                                                     )
                                                 })
@@ -73,7 +79,7 @@ const ApplicantsTable = () => {
 
                                 </TableCell>
 
-                            </tr>
+                            </TableRow>
                         ))
                     }
 

@@ -14,22 +14,24 @@ const Companies = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    useEffect(()=>{
+    useEffect(() => {
         dispatch(setSearchCompanyByText(input));
-    },[input]);
+    }, [input]);
     return (
-        <div>
+        <div className='min-h-screen bg-[#0F172A]'>
             <Navbar />
-            <div className='max-w-6xl mx-auto my-10'>
-                <div className='flex items-center justify-between my-5'>
+            <div className='max-w-6xl mx-auto py-10 px-4'>
+                <div className='flex items-center justify-between my-8'>
                     <Input
-                        className="w-fit"
+                        className="w-fit bg-[#1E293B] border-gray-700 text-white placeholder-gray-500"
                         placeholder="Filter by name"
                         onChange={(e) => setInput(e.target.value)}
                     />
-                    <Button onClick={() => navigate("/admin/companies/create")}>New Company</Button>
+                    <Button className="bg-[#6366F1] hover:bg-[#4f46e5]" onClick={() => navigate("/admin/companies/create")}>New Company</Button>
                 </div>
-                <CompaniesTable/>
+                <div className='bg-[#1E293B] rounded-xl border border-gray-800 shadow-xl overflow-hidden'>
+                    <CompaniesTable />
+                </div>
             </div>
         </div>
     )

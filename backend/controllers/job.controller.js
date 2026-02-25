@@ -65,7 +65,7 @@ export const getJobById = async (req, res) => {
     try {
         const jobId = req.params.id;
         const job = await Job.findById(jobId).populate({
-            path:"applications"
+            path: "applications"
         });
         if (!job) {
             return res.status(404).json({
@@ -83,8 +83,8 @@ export const getAdminJobs = async (req, res) => {
     try {
         const adminId = req.id;
         const jobs = await Job.find({ created_by: adminId }).populate({
-            path:'company',
-            createdAt:-1
+            path: 'company',
+            createdAt: -1
         });
         if (!jobs) {
             return res.status(404).json({
@@ -100,3 +100,60 @@ export const getAdminJobs = async (req, res) => {
         console.log(error);
     }
 }
+export const updateJob = async (req, res) => {
+    try {
+        const { title, description, requirements, salary, location, jobType, experience, position } = req.body;
+        const jobId = req.params.id;
+        const userId = req.id;
+
+        const job = await Job.findById(jobId);
+        if (!job) {
+            return res.status(404).json({ message: "Job not found", success: false });
+        }
+
+        if (job.created_by.toString() !== userId) {
+            return res.status(403).json({ message: "You are not authorized to update this job", success: false });
+        }
+
+        const updateData = {
+            title,
+            description,
+            requirements: requirements?.split(","),
+            salary: Number(salary),
+            location,
+            jobType,
+            experienceLevel: experience,
+            position
+        };
+
+        const updatedJob = await Job.findByIdAndUpdate(jobId, updateData, { new: true });
+        return res.status(200).json({ message: "Job updated successfully", job: updatedJob, success: true });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+};
+
+export const deleteJob = async (req, res) => {
+    try {
+        const jobId = req.params.id;
+        const userId = req.id;
+
+        const job = await Job.findById(jobId);
+        if (!job) {
+            return res.status(404).json({ message: "Job not found", success: false });
+        }
+
+        if (job.created_by.toString() !== userId) {
+            return res.status(403).json({ message: "You are not authorized to close this job", success: false });
+        }
+
+        job.status = 'closed';
+        await job.save();
+
+        return res.status(200).json({ message: "Job closed successfully", success: true });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+};
