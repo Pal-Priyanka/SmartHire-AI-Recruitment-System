@@ -65,16 +65,20 @@ const JobDescription = () => {
                             <Badge className='bg-emerald-50 text-emerald-600 border-none font-bold px-4 py-2 rounded-xl text-sm' variant="outline">{singleJob?.salary}LPA</Badge>
                         </div>
                     </div>
-                    <Button
-                        onClick={isApplied ? null : applyJobHandler}
-                        disabled={isApplied}
-                        className={`px-12 py-8 text-xl font-black rounded-2xl transition-all duration-300 shadow-2xl ${isApplied
-                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                            : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 active:scale-95'
-                            }`}
-                    >
-                        {isApplied ? 'Application Submitted' : 'Apply For This Role'}
-                    </Button>
+                    {
+                        user?.role !== 'recruiter' && (
+                            <Button
+                                onClick={isApplied ? null : applyJobHandler}
+                                disabled={isApplied}
+                                className={`px-12 py-8 text-xl font-black rounded-2xl transition-all duration-300 shadow-2xl ${isApplied
+                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 active:scale-95'
+                                    }`}
+                            >
+                                {isApplied ? 'Application Submitted' : 'Apply For This Role'}
+                            </Button>
+                        )
+                    }
                 </div>
 
                 <div className='grid grid-cols-1 lg:grid-cols-3 gap-10'>
