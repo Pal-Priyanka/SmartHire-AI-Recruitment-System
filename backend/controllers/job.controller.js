@@ -215,8 +215,15 @@ export const checkExpiredJobs = async () => {
                     "",
                     { jobId: job._id, jobTitle: job.title, companyName: companyName }
                 );
+            } else if (!existingNotification.isRead && !existingNotification.title.includes(companyName)) {
+                // Update existing unread notification to include company name if it's missing
+                console.log(`[ExpiryCheck] Updating existing notification for job ${job._id} with company name: ${companyName}`);
+                existingNotification.title = `Job Deadline Passed: ${job.title} (${companyName})`;
+                existingNotification.message = `Deadline for "${job.title}" at ${companyName} has passed. Confirm deletion or sustain with a new deadline.`;
+                existingNotification.data = { ...existingNotification.data, companyName };
+                await existingNotification.save();
             } else {
-                console.log(`[ExpiryCheck] Notification already exists for job ${job._id}`);
+                console.log(`[ExpiryCheck] Notification already exists (and is updated or read) for job ${job._id}`);
             }
         }
     } catch (error) {
