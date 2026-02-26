@@ -52,24 +52,24 @@ const JobDescription = () => {
     }, [jobId, dispatch, user?._id]);
 
     return (
-        <div className='min-h-screen bg-[#0F172A] text-white'>
+        <div className='min-h-screen bg-slate-50 text-slate-900'>
             <Navbar />
             <div className='max-w-7xl mx-auto py-12 px-4 animate-in fade-in duration-500'>
-                <div className='flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12 bg-[#1E293B] p-8 rounded-3xl border border-gray-800 shadow-2xl'>
+                <div className='flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12 bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-indigo-100/50'>
                     <div className='space-y-4'>
-                        <h1 className='font-extrabold text-4xl md:text-5xl text-white tracking-tight'>{singleJob?.title}</h1>
+                        <h1 className='font-black text-4xl md:text-5xl text-slate-900 tracking-tight leading-tight'>{singleJob?.title}</h1>
                         <div className='flex flex-wrap items-center gap-3'>
-                            <Badge className='bg-blue-500/10 text-blue-400 border-none font-bold px-4 py-1.5' variant="outline">{singleJob?.postion} Positions</Badge>
-                            <Badge className='bg-rose-500/10 text-rose-400 border-none font-bold px-4 py-1.5' variant="outline">{singleJob?.jobType}</Badge>
-                            <Badge className='bg-emerald-500/10 text-emerald-400 border-none font-bold px-4 py-1.5' variant="outline">{singleJob?.salary}LPA</Badge>
+                            <Badge className='bg-blue-50 text-blue-600 border-none font-bold px-4 py-2 rounded-xl text-sm' variant="outline">{singleJob?.postion} Positions</Badge>
+                            <Badge className='bg-rose-50 text-rose-600 border-none font-bold px-4 py-2 rounded-xl text-sm' variant="outline">{singleJob?.jobType}</Badge>
+                            <Badge className='bg-emerald-50 text-emerald-600 border-none font-bold px-4 py-2 rounded-xl text-sm' variant="outline">{singleJob?.salary}LPA</Badge>
                         </div>
                     </div>
                     <Button
                         onClick={isApplied ? null : applyJobHandler}
                         disabled={isApplied}
-                        className={`px-10 py-6 text-lg font-bold rounded-2xl transition-all duration-300 shadow-xl ${isApplied
-                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700'
-                                : 'bg-indigo-500 hover:bg-indigo-600 text-white shadow-indigo-500/20 active:scale-95'
+                        className={`px-12 py-8 text-xl font-black rounded-2xl transition-all duration-300 shadow-2xl ${isApplied
+                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                            : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 active:scale-95'
                             }`}
                     >
                         {isApplied ? 'Application Submitted' : 'Apply For This Role'}
@@ -78,56 +78,57 @@ const JobDescription = () => {
 
                 <div className='grid grid-cols-1 lg:grid-cols-3 gap-10'>
                     <div className='lg:col-span-2 space-y-10'>
-                        <div className='bg-[#1E293B] p-8 rounded-3xl border border-gray-800 shadow-xl'>
-                            <h2 className='text-2xl font-bold text-white mb-6 flex items-center gap-3'>
-                                <span className='h-8 w-1 bg-indigo-500 rounded-full'></span>
+                        <div className='bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl'>
+                            <h2 className='text-2xl font-black text-slate-900 mb-8 flex items-center gap-4'>
+                                <span className='h-10 w-1.5 bg-indigo-600 rounded-full'></span>
                                 Job Description
                             </h2>
-                            <p className='text-gray-400 leading-loose text-lg whitespace-pre-line'>
+                            <p className='text-slate-600 leading-relaxed text-lg whitespace-pre-line font-medium'>
                                 {singleJob?.description || "No detailed description provided."}
                             </p>
                         </div>
                     </div>
 
                     <div className='space-y-8'>
-                        <div className='bg-[#1E293B] p-8 rounded-3xl border border-gray-800 shadow-xl'>
-                            <h2 className='text-xl font-bold text-white mb-6'>Job Overview</h2>
-                            <div className='space-y-6'>
-                                <div className='flex items-start gap-4'>
-                                    <div className='p-2 bg-indigo-500/10 rounded-lg text-indigo-400'><User className='h-5 w-5' /></div>
+                        <div className='bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl'>
+                            <h2 className='text-xl font-black text-slate-900 mb-8 uppercase tracking-widest text-[12px]'>Job Overview</h2>
+                            <div className='space-y-8'>
+                                <div className='flex items-start gap-5'>
+                                    <div className='p-3 bg-indigo-50 rounded-[1rem] text-indigo-600'><User className='h-6 w-6' /></div>
                                     <div>
-                                        <p className='text-xs text-gray-500 uppercase font-bold tracking-widest'>Role</p>
-                                        <p className='text-white font-medium'>{singleJob?.title}</p>
+                                        <p className='text-[10px] text-slate-400 uppercase font-black tracking-[0.2em]'>Role</p>
+                                        <p className='text-slate-900 font-bold text-lg'>{singleJob?.title}</p>
                                     </div>
                                 </div>
-                                <div className='flex items-start gap-4'>
-                                    <div className='p-2 bg-emerald-500/10 rounded-lg text-emerald-400'><div className='h-5 w-5 font-bold flex items-center justify-center'>@</div></div>
+                                <div className='flex items-start gap-5'>
+                                    <div className='p-3 bg-emerald-50 rounded-[1rem] text-emerald-600'><div className='h-6 w-6 font-black flex items-center justify-center text-xl'>@</div></div>
                                     <div>
-                                        <p className='text-xs text-gray-500 uppercase font-bold tracking-widest'>Location</p>
-                                        <p className='text-white font-medium'>{singleJob?.location}</p>
+                                        <p className='text-[10px] text-slate-400 uppercase font-black tracking-[0.2em]'>Location</p>
+                                        <p className='text-slate-900 font-bold text-lg'>{singleJob?.location}</p>
                                     </div>
                                 </div>
-                                <div className='flex items-start gap-4'>
-                                    <div className='p-2 bg-amber-500/10 rounded-lg text-amber-400'><div className='h-5 w-5 font-bold flex items-center justify-center'>Exp</div></div>
+                                <div className='flex items-start gap-5'>
+                                    <div className='p-3 bg-amber-50 rounded-[1rem] text-amber-600'><div className='h-6 w-6 font-black flex items-center justify-center text-xl'>Exp</div></div>
                                     <div>
-                                        <p className='text-xs text-gray-500 uppercase font-bold tracking-widest'>Experience</p>
-                                        <p className='text-white font-medium'>{singleJob?.experience} Years</p>
+                                        <p className='text-[10px] text-slate-400 uppercase font-black tracking-[0.2em]'>Experience</p>
+                                        <p className='text-slate-900 font-bold text-lg'>{singleJob?.experience} Years</p>
                                     </div>
                                 </div>
-                                <div className='flex items-start gap-4'>
-                                    <div className='p-2 bg-purple-500/10 rounded-lg text-purple-400'><div className='h-5 w-5 font-bold flex items-center justify-center'>$$</div></div>
+                                <div className='flex items-start gap-5'>
+                                    <div className='p-3 bg-purple-50 rounded-[1rem] text-purple-600'><div className='h-6 w-6 font-black flex items-center justify-center text-xl'>$$</div></div>
                                     <div>
-                                        <p className='text-xs text-gray-500 uppercase font-bold tracking-widest'>Annual Salary</p>
-                                        <p className='text-white font-medium'>{singleJob?.salary} LPA</p>
+                                        <p className='text-[10px] text-slate-400 uppercase font-black tracking-[0.2em]'>Annual Salary</p>
+                                        <p className='text-slate-900 font-bold text-lg'>{singleJob?.salary} LPA</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className='bg-indigo-500/5 p-8 rounded-3xl border border-indigo-500/10 text-center'>
-                            <p className='text-gray-400 text-sm mb-1 uppercase font-bold tracking-widest'>Applications Received</p>
-                            <span className='text-4xl font-black text-indigo-400'>{singleJob?.applications?.length || 0}</span>
-                            <p className='text-gray-500 text-xs mt-3 capitalize italic'>Posted on {singleJob?.createdAt.split("T")[0]}</p>
+                        <div className='bg-indigo-600 p-10 rounded-[2.5rem] shadow-2xl shadow-indigo-200 text-center text-white'>
+                            <p className='text-indigo-100 text-xs mb-2 uppercase font-black tracking-[0.2em]'>Applications Received</p>
+                            <span className='text-5xl font-black'>{singleJob?.applications?.length || 0}</span>
+                            <div className='h-px bg-indigo-500/30 my-6'></div>
+                            <p className='text-indigo-100 text-[10px] font-bold uppercase tracking-wider'>Posted on {singleJob?.createdAt.split("T")[0]}</p>
                         </div>
                     </div>
                 </div>

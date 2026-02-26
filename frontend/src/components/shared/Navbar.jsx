@@ -21,6 +21,7 @@ const Navbar = () => {
             const res = await axios.get(`${AUTH_API_END_POINT}/logout`, { withCredentials: true });
             if (res.data.success) {
                 dispatch(setUser(null));
+                localStorage.removeItem("user"); // Clear any potentially persisted state
                 navigate("/");
                 toast.success(res.data.message);
             }
@@ -30,20 +31,20 @@ const Navbar = () => {
         }
     }
     return (
-        <div className='bg-[#0F172A] border-b border-gray-800 text-white sticky top-0 z-50'>
-            <div className='flex items-center justify-between mx-auto max-w-7xl h-16'>
+        <div className='bg-white border-b border-slate-200 text-slate-900 sticky top-0 z-50 shadow-sm'>
+            <div className='flex items-center justify-between mx-auto max-w-7xl h-16 px-4'>
                 <div>
-                    <h1 className='text-2xl font-bold'>Smart<span className='text-[#6366F1]'>Hire</span></h1>
+                    <h1 className='text-2xl font-bold tracking-tight'>Smart<span className='text-indigo-600'>Hire</span></h1>
                 </div>
                 <div className='flex items-center gap-12'>
                     <ul className='flex font-medium items-center gap-5'>
                         {
                             user && user.role === 'recruiter' ? (
                                 <>
-                                    <li><Link to="/admin/companies">Companies</Link></li>
-                                    <li><Link to="/admin/jobs">Jobs</Link></li>
-                                    <li><Link to="/admin/interviews">Interviews</Link></li>
-                                    <li><Link to="/admin/analytics">Analytics</Link></li>
+                                    <li><Link to="/admin/companies" className="hover:text-indigo-600 transition-colors">Companies</Link></li>
+                                    <li><Link to="/admin/jobs" className="hover:text-indigo-600 transition-colors">Jobs</Link></li>
+                                    <li><Link to="/admin/interviews" className="hover:text-indigo-600 transition-colors">Interviews</Link></li>
+                                    <li><Link to="/admin/analytics" className="hover:text-indigo-600 transition-colors">Analytics</Link></li>
                                 </>
                             ) : (
                                 <>
@@ -58,40 +59,40 @@ const Navbar = () => {
                     {
                         !user ? (
                             <div className='flex items-center gap-2'>
-                                <Link to="/login"><Button variant="ghost" className="text-white hover:bg-white/10">Login</Button></Link>
-                                <Link to="/signup"><Button className="bg-[#6366F1] hover:bg-[#4f46e5]">Signup</Button></Link>
+                                <Link to="/login"><Button variant="ghost" className="text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium">Login</Button></Link>
+                                <Link to="/signup"><Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md shadow-indigo-200">Signup</Button></Link>
                             </div>
                         ) : (
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Avatar className="cursor-pointer">
+                                    <Avatar className="cursor-pointer border-2 border-slate-200 hover:border-indigo-500 transition-all">
                                         <AvatarImage src={user?.profile?.profilePhoto} alt="@shadcn" />
                                     </Avatar>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-80 bg-[#1E293B] border-gray-700 text-white">
+                                <PopoverContent className="w-80 bg-white border-slate-200 text-slate-900 shadow-xl">
                                     <div className=''>
-                                        <div className='flex gap-2 space-y-2'>
+                                        <div className='flex gap-2 space-y-2 py-2'>
                                             <Avatar className="cursor-pointer">
                                                 <AvatarImage src={user?.profile?.profilePhoto} alt="@shadcn" />
                                             </Avatar>
                                             <div>
-                                                <h4 className='font-medium'>{user?.fullname}</h4>
-                                                <p className='text-sm text-gray-400'>{user?.profile?.bio}</p>
+                                                <h4 className='font-bold text-slate-900'>{user?.fullname}</h4>
+                                                <p className='text-sm text-slate-500'>{user?.profile?.bio || "Professional User"}</p>
                                             </div>
                                         </div>
-                                        <div className='flex flex-col my-2 text-gray-200'>
+                                        <div className='flex flex-col my-4 space-y-1'>
                                             {
                                                 user && user.role === 'candidate' && (
-                                                    <div className='flex w-fit items-center gap-2 cursor-pointer'>
-                                                        <User2 className="text-gray-400" />
-                                                        <Button variant="link" className="text-gray-200"> <Link to="/profile">View Profile</Link></Button>
+                                                    <div className='flex w-full items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors'>
+                                                        <User2 className="text-slate-500 h-5 w-5" />
+                                                        <Link to="/profile" className="text-sm font-medium text-slate-700">View Profile</Link>
                                                     </div>
                                                 )
                                             }
 
-                                            <div className='flex w-fit items-center gap-2 cursor-pointer'>
-                                                <LogOut className="text-gray-400" />
-                                                <Button onClick={logoutHandler} variant="link" className="text-gray-200">Logout</Button>
+                                            <div onClick={logoutHandler} className='flex w-full items-center gap-3 px-3 py-2 hover:bg-rose-50 text-rose-600 rounded-lg cursor-pointer transition-colors'>
+                                                <LogOut className="h-5 w-5" />
+                                                <span className="text-sm font-medium">Logout</span>
                                             </div>
                                         </div>
                                     </div>

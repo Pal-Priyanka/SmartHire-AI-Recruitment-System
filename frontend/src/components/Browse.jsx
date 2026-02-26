@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import Navbar from './shared/Navbar'
 import Job from './Job';
+import { Badge } from './ui/badge';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSearchedQuery } from '@/redux/jobSlice';
 import useGetAllJobs from '@/hooks/useGetAllJobs';
@@ -17,12 +18,12 @@ const Browse = () => {
         }
     }, [])
     return (
-        <div className='min-h-screen bg-[#0F172A] text-white'>
+        <div className='min-h-screen bg-slate-50 text-slate-900'>
             <Navbar />
             <div className='max-w-7xl mx-auto py-12 px-4'>
-                <h1 className='font-extrabold text-3xl mb-10 flex items-center gap-3'>
+                <h1 className='font-extrabold text-3xl mb-10 flex items-center gap-3 text-slate-900'>
                     Search Results
-                    <Badge className='bg-indigo-500 text-white border-none px-3 py-1'>{allJobs.length}</Badge>
+                    <Badge className='bg-indigo-600 text-white border-none px-3 py-1'>{allJobs.length}</Badge>
                 </h1>
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
                     {
@@ -34,8 +35,8 @@ const Browse = () => {
                     }
                 </div>
                 {allJobs.length === 0 && (
-                    <div className='text-center py-20 bg-[#1E293B] rounded-3xl border border-gray-800 border-dashed'>
-                        <p className='text-gray-500 text-xl'>No jobs found for your search.</p>
+                    <div className='text-center py-20 bg-white rounded-3xl border border-slate-200 border-dashed shadow-sm'>
+                        <p className='text-slate-400 text-xl font-medium'>No jobs found for your search.</p>
                     </div>
                 )}
             </div>

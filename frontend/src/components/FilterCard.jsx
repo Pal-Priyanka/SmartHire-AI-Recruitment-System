@@ -29,30 +29,30 @@ const FilterCard = () => {
         dispatch(setSearchedQuery(selectedValue));
     }, [selectedValue]);
     return (
-        <div className='w-full bg-[#1E293B] p-5 rounded-2xl border border-gray-800 shadow-xl'>
-            <div className='flex items-center justify-between mb-4'>
-                <h1 className='font-bold text-xl text-white'>Filters</h1>
-                <span className='text-xs text-indigo-400 font-medium cursor-pointer hover:underline' onClick={() => setSelectedValue('')}>Reset All</span>
+        <div className='w-full bg-white p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50'>
+            <div className='flex items-center justify-between mb-8'>
+                <h1 className='font-black text-2xl text-slate-900 tracking-tight'>Filters</h1>
+                <span className='text-xs text-indigo-600 font-black uppercase tracking-widest cursor-pointer hover:text-indigo-800 transition-colors' onClick={() => setSelectedValue('')}>Reset All</span>
             </div>
-            <div className='space-y-6'>
+            <div className='space-y-8'>
                 {
                     fitlerData.map((data, index) => (
-                        <div key={index} className='border-t border-gray-800 pt-4'>
-                            <h1 className='font-bold text-sm text-gray-400 uppercase tracking-wider mb-3'>{data.fitlerType}</h1>
+                        <div key={index} className='border-t border-slate-50 pt-6'>
+                            <h1 className='font-black text-[10px] text-slate-400 uppercase tracking-[0.2em] mb-4'>{data.fitlerType}</h1>
                             <RadioGroup value={selectedValue} onValueChange={changeHandler}>
                                 {
                                     data.array.map((item, idx) => {
                                         const itemId = `id${index}-${idx}`
                                         return (
-                                            <div key={itemId} className='flex items-center space-x-3 my-2 group cursor-pointer'>
+                                            <div key={itemId} className='flex items-center space-x-3 my-3 group cursor-pointer'>
                                                 <RadioGroupItem
                                                     value={item}
                                                     id={itemId}
-                                                    className="border-gray-600 text-indigo-500 focus:ring-indigo-500 bg-transparent"
+                                                    className="border-slate-300 text-indigo-600 focus:ring-indigo-600 bg-white"
                                                 />
                                                 <Label
                                                     htmlFor={itemId}
-                                                    className="text-gray-300 text-sm font-medium cursor-pointer group-hover:text-white transition-colors"
+                                                    className="text-slate-600 text-sm font-bold cursor-pointer group-hover:text-slate-900 transition-colors"
                                                 >
                                                     {item}
                                                 </Label>

@@ -22,34 +22,34 @@ const CompaniesTable = () => {
     }, [companies, searchCompanyByText])
     return (
         <div>
-            <Table className="text-white">
-                <TableCaption className="text-gray-500">A list of your registered companies</TableCaption>
-                <TableHeader>
-                    <TableRow className="border-gray-800 hover:bg-transparent">
-                        <TableHead className="text-gray-400">Logo</TableHead>
-                        <TableHead className="text-gray-400">Name</TableHead>
-                        <TableHead className="text-gray-400">Date</TableHead>
-                        <TableHead className="text-right text-gray-400">Action</TableHead>
+            <Table className="bg-white">
+                <TableCaption className="text-slate-400 py-4 font-medium">A list of your registered companies</TableCaption>
+                <TableHeader className="bg-slate-50">
+                    <TableRow className="hover:bg-transparent border-slate-100">
+                        <TableHead className="text-slate-500 font-bold uppercase text-[10px] tracking-wider">Logo</TableHead>
+                        <TableHead className="text-slate-500 font-bold uppercase text-[10px] tracking-wider">Name</TableHead>
+                        <TableHead className="text-slate-500 font-bold uppercase text-[10px] tracking-wider">Date</TableHead>
+                        <TableHead className="text-right text-slate-500 font-bold uppercase text-[10px] tracking-wider">Action</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {
                         filterCompany?.map((company) => (
-                            <TableRow key={company._id} className="border-gray-800 hover:bg-white/5">
+                            <TableRow key={company._id} className="border-slate-50 hover:bg-slate-50 transition-colors">
                                 <TableCell>
-                                    <Avatar className="h-10 w-10 border border-gray-700">
+                                    <Avatar className="h-10 w-10 border border-slate-100 shadow-sm">
                                         <AvatarImage src={company.logo} />
                                     </Avatar>
                                 </TableCell>
-                                <TableCell className="font-medium">{company.name}</TableCell>
-                                <TableCell className="text-gray-400">{company.createdAt.split("T")[0]}</TableCell>
+                                <TableCell className="font-bold text-slate-900">{company.name}</TableCell>
+                                <TableCell className="text-slate-500 text-sm">{company.createdAt.split("T")[0]}</TableCell>
                                 <TableCell className="text-right cursor-pointer">
                                     <Popover>
-                                        <PopoverTrigger><MoreHorizontal className="text-gray-400 hover:text-white" /></PopoverTrigger>
-                                        <PopoverContent className="w-32 bg-[#1E293B] border-gray-700 text-white">
-                                            <div onClick={() => navigate(`/admin/companies/${company._id}`)} className='flex items-center gap-2 w-full px-2 py-1.5 hover:bg-white/10 rounded-md cursor-pointer transition-colors'>
-                                                <Edit2 className='w-4 h-4 text-indigo-400' />
-                                                <span className="text-sm">Edit</span>
+                                        <PopoverTrigger><MoreHorizontal className="text-slate-400 hover:text-slate-900" /></PopoverTrigger>
+                                        <PopoverContent className="w-32 bg-white border-slate-200 text-slate-900 shadow-xl">
+                                            <div onClick={() => navigate(`/admin/companies/${company._id}`)} className='flex items-center gap-2 w-full px-2 py-2 hover:bg-slate-50 rounded-md cursor-pointer transition-colors'>
+                                                <Edit2 className='w-4 h-4 text-indigo-600' />
+                                                <span className="text-sm font-medium">Edit</span>
                                             </div>
                                         </PopoverContent>
                                     </Popover>

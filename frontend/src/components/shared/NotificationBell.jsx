@@ -25,7 +25,7 @@ const NotificationBell = () => {
 
         if (user) {
             fetchNotifications();
-            const socket = io("http://localhost:5000", { query: { userId: user._id } });
+            const socket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:5000", { query: { userId: user._id } });
 
             socket.on("new_notification", (notification) => {
                 setNotifications(prev => [notification, ...prev]);
@@ -49,33 +49,41 @@ const NotificationBell = () => {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <div className="relative cursor-pointer hover:bg-white/10 p-2 rounded-full transition-colors">
-                    <Bell className="h-6 w-6 text-gray-300" />
+                <div className="relative cursor-pointer hover:bg-slate-100 p-2 rounded-full transition-all group">
+                    <Bell className="h-6 w-6 text-slate-500 group-hover:text-indigo-600 transition-colors" />
                     {unreadCount > 0 && (
-                        <span className="absolute top-0 right-0 h-4 w-4 bg-rose-500 text-white text-[10px] flex items-center justify-center rounded-full animate-bounce">
+                        <span className="absolute top-1 right-1 h-4 w-4 bg-rose-500 text-white text-[10px] font-black flex items-center justify-center rounded-full animate-bounce border-2 border-white">
                             {unreadCount}
                         </span>
                     )}
                 </div>
             </PopoverTrigger>
-            <PopoverContent className="w-80 bg-[#1E293B] border-gray-700 text-white p-4 shadow-2xl">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-lg">Notifications</h3>
-                    {unreadCount > 0 && <span className="text-xs text-indigo-400">{unreadCount} new</span>}
+            <PopoverContent className="w-96 bg-white border-slate-100 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-3xl">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-black text-xl text-slate-900 tracking-tight">Notifications</h3>
+                    {unreadCount > 0 && <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">{unreadCount} new</span>}
                 </div>
-                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {notifications.length === 0 ? (
-                        <p className="text-gray-500 text-sm text-center py-4">No new notifications</p>
+                        <div className='flex flex-col items-center justify-center py-10 text-center opacity-40'>
+                            <Bell className='h-12 w-12 text-slate-300 mb-2' />
+                            <p className="text-slate-500 text-sm font-bold">Inbox zero! No notifications.</p>
+                        </div>
                     ) : (
                         notifications.map((n) => (
                             <div
                                 key={n._id}
                                 onClick={() => !n.isRead && markAsRead(n._id)}
-                                className={`p-3 rounded-lg border leading-tight transition-colors cursor-pointer ${n.isRead ? 'bg-transparent border-gray-800' : 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20'}`}
+                                className={`p-4 rounded-2xl border leading-tight transition-all cursor-pointer group ${n.isRead ? 'bg-white border-slate-50 hover:bg-slate-50' : 'bg-indigo-50/50 border-indigo-100 hover:bg-indigo-50 shadow-sm'}`}
                             >
-                                <p className={`text-sm font-semibold ${n.isRead ? 'text-gray-300' : 'text-white'}`}>{n.title}</p>
-                                <p className="text-xs text-gray-400 mt-1">{n.message}</p>
-                                <p className="text-[10px] text-gray-600 mt-2">{new Date(n.createdAt).toLocaleDateString()}</p>
+                                <div className='flex items-start gap-3'>
+                                    {!n.isRead && <span className='h-2 w-2 bg-indigo-600 rounded-full mt-1.5 shrink-0'></span>}
+                                    <div>
+                                        <p className={`text-sm font-black tracking-tight ${n.isRead ? 'text-slate-600' : 'text-slate-900'}`}>{n.title}</p>
+                                        <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">{n.message}</p>
+                                        <p className="text-[10px] text-slate-400 mt-3 font-black uppercase tracking-widest">{new Date(n.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                    </div>
+                                </div>
                             </div>
                         ))
                     )}
