@@ -18,8 +18,7 @@ const CompanySetup = () => {
         name: "",
         description: "",
         website: "",
-        location: "",
-        file: null
+        location: ""
     });
     const { singleCompany } = useSelector(store => store.company);
     const [loading, setLoading] = useState(false);
@@ -29,26 +28,13 @@ const CompanySetup = () => {
         setInput({ ...input, [e.target.name]: e.target.value });
     }
 
-    const changeFileHandler = (e) => {
-        const file = e.target.files?.[0];
-        setInput({ ...input, file });
-    }
-
     const submitHandler = async (e) => {
         e.preventDefault();
-        const formData = new FormData();
-        formData.append("name", input.name);
-        formData.append("description", input.description);
-        formData.append("website", input.website);
-        formData.append("location", input.location);
-        if (input.file) {
-            formData.append("file", input.file);
-        }
         try {
             setLoading(true);
-            const res = await axios.put(`${COMPANY_API_END_POINT}/update/${params.id}`, formData, {
+            const res = await axios.put(`${COMPANY_API_END_POINT}/update/${params.id}`, input, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'application/json'
                 },
                 withCredentials: true
             });
@@ -66,11 +52,10 @@ const CompanySetup = () => {
 
     useEffect(() => {
         setInput({
-            name: singleCompany.name || "",
-            description: singleCompany.description || "",
-            website: singleCompany.website || "",
-            location: singleCompany.location || "",
-            file: singleCompany.file || null
+            name: singleCompany?.name || "",
+            description: singleCompany?.description || "",
+            website: singleCompany?.website || "",
+            location: singleCompany?.location || ""
         })
     }, [singleCompany]);
 
@@ -125,15 +110,6 @@ const CompanySetup = () => {
                                 value={input.location}
                                 onChange={changeEventHandler}
                                 className="bg-slate-50 border-slate-200 text-slate-900 rounded-xl focus:ring-indigo-500"
-                            />
-                        </div>
-                        <div className='space-y-2 md:col-span-2'>
-                            <Label className='text-sm font-black text-slate-500 uppercase tracking-widest'>Logo</Label>
-                            <Input
-                                type="file"
-                                accept="image/*"
-                                onChange={changeFileHandler}
-                                className="bg-slate-50 border-slate-200 text-slate-900 rounded-xl focus:ring-indigo-500 file:bg-indigo-600 file:text-white file:border-none file:px-4 file:py-2 file:rounded-lg file:mr-4 file:font-bold cursor-pointer"
                             />
                         </div>
                     </div>
