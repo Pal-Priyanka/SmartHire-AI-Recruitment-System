@@ -43,7 +43,11 @@ const PostJob = () => {
         e.preventDefault();
         try {
             setLoading(true);
-            const res = await axios.post(`${JOB_API_END_POINT}/post`, input, {
+            const jobData = {
+                ...input,
+                applyBy: input.applyBy ? new Date(input.applyBy).toISOString() : null
+            };
+            const res = await axios.post(`${JOB_API_END_POINT}/post`, jobData, {
                 headers: {
                     'Content-Type': 'application/json'
                 },

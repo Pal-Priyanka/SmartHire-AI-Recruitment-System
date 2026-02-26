@@ -13,6 +13,7 @@ import analyticsRoute from "./routes/analytics.route.js";
 import notificationRoute from "./routes/notification.route.js";
 import path from "path";
 import { fileURLToPath } from 'url';
+import { checkExpiredJobs } from "./controllers/job.controller.js";
 
 dotenv.config();
 
@@ -24,7 +25,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 const corsOptions = {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true
 }
 
@@ -46,6 +47,10 @@ app.use("/api/notifications", notificationRoute);
 
 
 server.listen(PORT, () => {
-    connectDB();
-    console.log(`Server running at port ${PORT}`);
+    connectDB().then(() => {
+        console.log(`Server running at port ${PORT}`);
+        // Check for expired jobs every minute
+        setInterval(checkExpiredJobs, 60 * 1000);
+        checkExpiredJobs();
+    });
 })

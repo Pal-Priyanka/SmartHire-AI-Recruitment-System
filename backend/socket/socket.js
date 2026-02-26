@@ -6,8 +6,9 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000", // Will be overridden by CLIENT_URL in index.js
-        methods: ["GET", "POST"]
+        origin: [process.env.CLIENT_URL, "http://localhost:5173", "http://localhost:3000"],
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 

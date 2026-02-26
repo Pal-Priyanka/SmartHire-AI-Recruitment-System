@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import api from '@/lib/api';
 import { NOTIFICATION_API_END_POINT, JOB_API_END_POINT } from '@/utils/constant';
@@ -68,7 +69,8 @@ const NotificationBell = () => {
         }
 
         try {
-            const res = await axios.put(`${JOB_API_END_POINT}/update/${jobId}`, { applyBy: newDeadline }, { withCredentials: true });
+            const isoDeadline = new Date(newDeadline).toISOString();
+            const res = await axios.put(`${JOB_API_END_POINT}/update/${jobId}`, { applyBy: isoDeadline }, { withCredentials: true });
             if (res.data.success) {
                 toast.success("Job deadline updated successfully!");
                 markAsRead(notificationId);

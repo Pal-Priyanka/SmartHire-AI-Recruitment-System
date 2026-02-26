@@ -43,7 +43,11 @@ const JobSetup = () => {
         e.preventDefault();
         try {
             setLoading(true);
-            const res = await axios.put(`${JOB_API_END_POINT}/update/${jobId}`, input, {
+            const jobData = {
+                ...input,
+                applyBy: input.applyBy ? new Date(input.applyBy).toISOString() : null
+            };
+            const res = await axios.put(`${JOB_API_END_POINT}/update/${jobId}`, jobData, {
                 headers: {
                     'Content-Type': 'application/json'
                 },

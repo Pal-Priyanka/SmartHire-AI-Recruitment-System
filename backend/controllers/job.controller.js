@@ -1,4 +1,6 @@
 import { Job } from "../models/job.model.js";
+import { createNotification } from "./notification.controller.js";
+import { Notification } from "../models/notification.model.js";
 
 // admin post krega job
 export const postJob = async (req, res) => {
@@ -171,10 +173,9 @@ export const deleteJob = async (req, res) => {
     }
 };
 
-import { createNotification } from "./notification.controller.js";
-import { Notification } from "../models/notification.model.js";
 
-const checkExpiredJobs = async () => {
+
+export const checkExpiredJobs = async () => {
     try {
         const now = new Date();
         const expiredJobs = await Job.find({
@@ -182,7 +183,19 @@ const checkExpiredJobs = async () => {
             status: 'active'
         });
 
+        // Debug: Log total active jobs with deadlines
+        const allPendingJobs = await Job.find({ applyBy: { $ne: null }, status: 'active' });
+        console.log(`[ExpiryCheck] Found ${expiredJobs.length} expired jobs out of ${allPendingJobs.length} pending jobs.`);
+        if (allPendingJobs.length > 0 && expiredJobs.length === 0) {
+            console.log(`[ExpiryCheck] Next deadline: ${Math.min(...allPendingJobs.map(j => j.applyBy))}`);
+        }
+
+        if (expiredJobs.length > 0) {
+            console.log(`[ExpiryCheck] Found ${expiredJobs.length} expired jobs.`);
+        }
+
         for (const job of expiredJobs) {
+            console.log(`[ExpiryCheck] Processing expired job: ${job.title} (${job._id})`);
             // Check if notification already sent to avoid duplicates
             const existingNotification = await Notification.findOne({
                 recipient: job.created_by,
@@ -191,6 +204,7 @@ const checkExpiredJobs = async () => {
             });
 
             if (!existingNotification) {
+                console.log(`[ExpiryCheck] Sending notification to ${job.created_by} for job ${job._id}`);
                 await createNotification(
                     job.created_by,
                     'job_expiry',
@@ -199,6 +213,8 @@ const checkExpiredJobs = async () => {
                     "",
                     { jobId: job._id, jobTitle: job.title }
                 );
+            } else {
+                console.log(`[ExpiryCheck] Notification already exists for job ${job._id}`);
             }
         }
     } catch (error) {
@@ -206,5 +222,3 @@ const checkExpiredJobs = async () => {
     }
 };
 
-// Check every 1 minute
-setInterval(checkExpiredJobs, 60 * 1000);
