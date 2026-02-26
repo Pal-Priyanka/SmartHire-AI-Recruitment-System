@@ -69,8 +69,10 @@ const NotificationBell = () => {
         }
 
         try {
+            console.log("Sustaining job:", jobId, "with new deadline:", newDeadline);
             const isoDeadline = new Date(newDeadline).toISOString();
             const res = await axios.put(`${JOB_API_END_POINT}/update/${jobId}`, { applyBy: isoDeadline }, { withCredentials: true });
+            console.log("Sustain response:", res.data);
             if (res.data.success) {
                 toast.success("Job deadline updated successfully!");
                 markAsRead(notificationId);

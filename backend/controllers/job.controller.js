@@ -130,19 +130,18 @@ export const updateJob = async (req, res) => {
             return res.status(403).json({ message: "You are not authorized to update this job", success: false });
         }
 
-        const updateData = {
-            title,
-            description,
-            requirements: requirements?.split(","),
-            salary: Number(salary),
-            location,
-            jobType,
-            experienceLevel: experience,
-            position,
-            applyBy: applyBy || job.applyBy
-        };
+        const updateData = {};
+        if (title !== undefined) updateData.title = title;
+        if (description !== undefined) updateData.description = description;
+        if (requirements !== undefined) updateData.requirements = requirements?.split(",");
+        if (salary !== undefined) updateData.salary = Number(salary);
+        if (location !== undefined) updateData.location = location;
+        if (jobType !== undefined) updateData.jobType = jobType;
+        if (experience !== undefined) updateData.experienceLevel = experience;
+        if (position !== undefined) updateData.position = position;
+        if (applyBy !== undefined) updateData.applyBy = applyBy;
 
-        const updatedJob = await Job.findByIdAndUpdate(jobId, updateData, { new: true });
+        const updatedJob = await Job.findByIdAndUpdate(jobId, { $set: updateData }, { new: true });
         return res.status(200).json({ message: "Job updated successfully", job: updatedJob, success: true });
     } catch (error) {
         console.log(error);
