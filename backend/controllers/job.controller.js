@@ -181,7 +181,7 @@ export const checkExpiredJobs = async () => {
         const expiredJobs = await Job.find({
             applyBy: { $lte: now },
             status: 'active'
-        });
+        }).populate('company');
 
         // Debug: Log total active jobs with deadlines
         const allPendingJobs = await Job.find({ applyBy: { $ne: null }, status: 'active' });
@@ -195,7 +195,9 @@ export const checkExpiredJobs = async () => {
         }
 
         for (const job of expiredJobs) {
-            console.log(`[ExpiryCheck] Processing expired job: ${job.title} (${job._id})`);
+            const companyName = job.company?.name || "Unknown Company";
+            console.log(`[ExpiryCheck] Processing expired job: ${job.title} at ${companyName} (${job._id})`);
+
             // Check if notification already sent to avoid duplicates
             const existingNotification = await Notification.findOne({
                 recipient: job.created_by,
@@ -204,14 +206,14 @@ export const checkExpiredJobs = async () => {
             });
 
             if (!existingNotification) {
-                console.log(`[ExpiryCheck] Sending notification to ${job.created_by} for job ${job._id}`);
+                console.log(`[ExpiryCheck] Sending notification to ${job.created_by} for job ${job._id} at ${companyName}`);
                 await createNotification(
                     job.created_by,
                     'job_expiry',
-                    `Job Deadline Passed: ${job.title}`,
-                    `Deadline for "${job.title}" has passed. Confirm deletion or sustain with a new deadline.`,
+                    `Job Deadline Passed: ${job.title} (${companyName})`,
+                    `Deadline for "${job.title}" at ${companyName} has passed. Confirm deletion or sustain with a new deadline.`,
                     "",
-                    { jobId: job._id, jobTitle: job.title }
+                    { jobId: job._id, jobTitle: job.title, companyName: companyName }
                 );
             } else {
                 console.log(`[ExpiryCheck] Notification already exists for job ${job._id}`);
