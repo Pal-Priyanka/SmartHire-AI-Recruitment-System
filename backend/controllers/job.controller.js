@@ -31,6 +31,10 @@ export const postJob = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Internal server error.",
+            success: false
+        });
     }
 }
 // student k liye
@@ -58,6 +62,10 @@ export const getAllJobs = async (req, res) => {
         })
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Internal server error.",
+            success: false
+        });
     }
 }
 // student
@@ -76,6 +84,10 @@ export const getJobById = async (req, res) => {
         return res.status(200).json({ job, success: true });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Internal server error.",
+            success: false
+        });
     }
 }
 // admin kitne job create kra hai abhi tk
@@ -145,15 +157,14 @@ export const deleteJob = async (req, res) => {
         }
 
         if (job.created_by.toString() !== userId) {
-            return res.status(403).json({ message: "You are not authorized to close this job", success: false });
+            return res.status(403).json({ message: "You are not authorized to delete this job", success: false });
         }
 
-        job.status = 'closed';
-        await job.save();
+        await Job.findByIdAndDelete(jobId);
 
-        return res.status(200).json({ message: "Job closed successfully", success: true });
+        return res.status(200).json({ message: "Job deleted successfully", success: true });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error", success: false });
+        return res.status(500).json({ message: "Internal server error while deleting job", success: false });
     }
 };

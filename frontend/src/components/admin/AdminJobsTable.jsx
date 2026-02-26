@@ -2,16 +2,37 @@ import React, { useEffect, useState } from 'react'
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { Avatar, AvatarImage } from '../ui/avatar'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
-import { Edit2, Eye, MoreHorizontal } from 'lucide-react'
-import { useSelector } from 'react-redux'
+import { Edit2, Eye, MoreHorizontal, Trash2, ExternalLink } from 'lucide-react'
+import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../ui/button'
+import axios from 'axios'
+import { JOB_API_END_POINT } from '@/utils/constant'
+import { toast } from 'sonner'
+import { setAllAdminJobs } from '@/redux/jobSlice'
 
 const AdminJobsTable = () => {
     const { allAdminJobs, searchJobByText } = useSelector(store => store.job);
+    const dispatch = useDispatch();
 
     const [filterJobs, setFilterJobs] = useState(allAdminJobs);
     const navigate = useNavigate();
+
+    const deleteJobHandler = async (jobId) => {
+        try {
+            const res = await axios.delete(`${JOB_API_END_POINT}/delete/${jobId}`, {
+                withCredentials: true
+            });
+            if (res.data.success) {
+                const updatedJobs = allAdminJobs.filter((job) => job._id !== jobId);
+                dispatch(setAllAdminJobs(updatedJobs));
+                toast.success(res.data.message);
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error(error.response?.data?.message || "Failed to delete job");
+        }
+    }
 
     useEffect(() => {
         console.log('called');
@@ -60,10 +81,32 @@ const AdminJobsTable = () => {
                                                     <MoreHorizontal className="text-slate-400 h-5 w-5" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-40 bg-white border-slate-200 text-slate-900 shadow-xl p-1" align="end">
-                                                <div onClick={() => navigate(`/admin/jobs/${job._id}`)} className='flex items-center gap-3 w-full px-3 py-2.5 hover:bg-slate-50 rounded-md cursor-pointer transition-colors'>
-                                                    <Edit2 className='w-4 h-4 text-indigo-600' />
-                                                    <span className="text-sm font-semibold">Edit Job</span>
+                                            <PopoverContent className="w-44 bg-white border-slate-200 text-slate-900 shadow-xl p-2 rounded-xl" align="end">
+                                                <div className='flex flex-col gap-1'>
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={() => navigate(`/admin/jobs/${job._id}`)}
+                                                        className='flex items-center justify-start gap-3 w-full px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group h-auto'
+                                                    >
+                                                        <Edit2 className='w-4 h-4 text-slate-400 group-hover:text-indigo-600' />
+                                                        <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">Edit Details</span>
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={() => navigate(`/description/${job._id}`)}
+                                                        className='flex items-center justify-start gap-3 w-full px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group h-auto'
+                                                    >
+                                                        <ExternalLink className='w-4 h-4 text-slate-400 group-hover:text-emerald-600' />
+                                                        <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">View Details</span>
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={() => deleteJobHandler(job._id)}
+                                                        className='flex items-center justify-start gap-3 w-full px-3 py-2 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors group h-auto'
+                                                    >
+                                                        <Trash2 className='w-4 h-4 text-slate-400 group-hover:text-rose-600' />
+                                                        <span className="text-sm font-bold text-slate-700 group-hover:text-rose-600">Delete</span>
+                                                    </Button>
                                                 </div>
                                             </PopoverContent>
                                         </Popover>
