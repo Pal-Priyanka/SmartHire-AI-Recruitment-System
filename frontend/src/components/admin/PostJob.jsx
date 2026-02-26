@@ -23,7 +23,8 @@ const PostJob = () => {
         jobType: "",
         experience: "",
         position: 0,
-        companyId: ""
+        companyId: "",
+        applyBy: ""
     });
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -142,6 +143,16 @@ const PostJob = () => {
                                 type="number"
                                 name="position"
                                 value={input.position}
+                                onChange={changeEventHandler}
+                                className="bg-slate-50 border-slate-200 text-slate-900 rounded-xl focus:ring-indigo-500 h-12"
+                            />
+                        </div>
+                        <div className='space-y-2'>
+                            <Label className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Apply By (Deadline)</Label>
+                            <Input
+                                type="datetime-local"
+                                name="applyBy"
+                                value={input.applyBy}
                                 onChange={changeEventHandler}
                                 className="bg-slate-50 border-slate-200 text-slate-900 rounded-xl focus:ring-indigo-500 h-12"
                             />

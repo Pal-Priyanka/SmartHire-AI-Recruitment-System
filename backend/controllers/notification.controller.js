@@ -25,9 +25,9 @@ export const markAsRead = async (req, res) => {
     }
 };
 
-export const createNotification = async (recipient, type, title, message, link = "") => {
+export const createNotification = async (recipient, type, title, message, link = "", data = {}) => {
     try {
-        const notification = await Notification.create({ recipient, type, title, message, link });
+        const notification = await Notification.create({ recipient, type, title, message, link, data });
 
         // Emit real-time notification via Socket.io
         const receiverSocketId = getReceiverSocketId(recipient);

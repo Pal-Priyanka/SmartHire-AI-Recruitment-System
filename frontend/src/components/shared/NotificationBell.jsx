@@ -3,12 +3,16 @@ import { Bell } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
 import api from '@/lib/api';
-import { NOTIFICATION_API_END_POINT } from '@/utils/constant';
+import { NOTIFICATION_API_END_POINT, JOB_API_END_POINT } from '@/utils/constant';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
+import { toast } from 'sonner';
+import { Input } from '../ui/input';
+import axios from 'axios';
 
 const NotificationBell = () => {
     const [notifications, setNotifications] = useState([]);
+    const [sustainData, setSustainData] = useState({}); // { notificationId: newDeadline }
     const { user } = useSelector(store => store.auth);
 
     useEffect(() => {
@@ -41,6 +45,40 @@ const NotificationBell = () => {
             setNotifications(notifications.map(n => n._id === id ? { ...n, isRead: true } : n));
         } catch (error) {
             console.error("Error marking notification as read:", error);
+        }
+    };
+
+    const handleDeleteJob = async (jobId, notificationId) => {
+        try {
+            const res = await axios.delete(`${JOB_API_END_POINT}/delete/${jobId}`, { withCredentials: true });
+            if (res.data.success) {
+                toast.success(res.data.message);
+                markAsRead(notificationId);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to delete job");
+        }
+    };
+
+    const handleSustainJob = async (jobId, notificationId) => {
+        const newDeadline = sustainData[notificationId];
+        if (!newDeadline) {
+            toast.error("Please select a new deadline first!");
+            return;
+        }
+
+        try {
+            const res = await axios.put(`${JOB_API_END_POINT}/update/${jobId}`, { applyBy: newDeadline }, { withCredentials: true });
+            if (res.data.success) {
+                toast.success("Job deadline updated successfully!");
+                markAsRead(notificationId);
+                // Clear state
+                const newSustainData = { ...sustainData };
+                delete newSustainData[notificationId];
+                setSustainData(newSustainData);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to sustain job");
         }
     };
 
@@ -81,6 +119,38 @@ const NotificationBell = () => {
                                     <div>
                                         <p className={`text-sm font-black tracking-tight ${n.isRead ? 'text-slate-600' : 'text-slate-900'}`}>{n.title}</p>
                                         <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">{n.message}</p>
+
+                                        {n.type === 'job_expiry' && !n.isRead && (
+                                            <div className="mt-4 space-y-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm" onClick={(e) => e.stopPropagation()}>
+                                                <div className="flex flex-col gap-2">
+                                                    <Label className="text-[10px] uppercase font-black text-slate-400 tracking-widest">New Deadline (for Sustain)</Label>
+                                                    <Input
+                                                        type="datetime-local"
+                                                        className="h-8 text-xs rounded-lg"
+                                                        value={sustainData[n._id] || ""}
+                                                        onChange={(e) => setSustainData({ ...sustainData, [n._id]: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-[10px] font-black uppercase tracking-widest h-8 rounded-lg"
+                                                        onClick={() => handleSustainJob(n.data.jobId, n._id)}
+                                                    >
+                                                        Sustain
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="flex-1 border-rose-100 text-rose-600 hover:bg-rose-50 text-[10px] font-black uppercase tracking-widest h-8 rounded-lg"
+                                                        onClick={() => handleDeleteJob(n.data.jobId, n._id)}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <p className="text-[10px] text-slate-400 mt-3 font-black uppercase tracking-widest">{new Date(n.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                                     </div>
                                 </div>

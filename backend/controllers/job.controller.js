@@ -3,7 +3,7 @@ import { Job } from "../models/job.model.js";
 // admin post krega job
 export const postJob = async (req, res) => {
     try {
-        const { title, description, requirements, salary, location, jobType, experience, position, companyId } = req.body;
+        const { title, description, requirements, salary, location, jobType, experience, position, companyId, applyBy } = req.body;
         const userId = req.id;
 
         if (!title || !description || !requirements || !salary || !location || !jobType || !experience || !position || !companyId) {
@@ -22,6 +22,7 @@ export const postJob = async (req, res) => {
             experienceLevel: experience,
             position,
             company: companyId,
+            applyBy: applyBy || null,
             created_by: userId
         });
         return res.status(201).json({
@@ -114,7 +115,7 @@ export const getAdminJobs = async (req, res) => {
 }
 export const updateJob = async (req, res) => {
     try {
-        const { title, description, requirements, salary, location, jobType, experience, position } = req.body;
+        const { title, description, requirements, salary, location, jobType, experience, position, applyBy } = req.body;
         const jobId = req.params.id;
         const userId = req.id;
 
@@ -135,7 +136,8 @@ export const updateJob = async (req, res) => {
             location,
             jobType,
             experienceLevel: experience,
-            position
+            position,
+            applyBy: applyBy || job.applyBy
         };
 
         const updatedJob = await Job.findByIdAndUpdate(jobId, updateData, { new: true });
@@ -168,3 +170,41 @@ export const deleteJob = async (req, res) => {
         return res.status(500).json({ message: "Internal server error while deleting job", success: false });
     }
 };
+
+import { createNotification } from "./notification.controller.js";
+import { Notification } from "../models/notification.model.js";
+
+const checkExpiredJobs = async () => {
+    try {
+        const now = new Date();
+        const expiredJobs = await Job.find({
+            applyBy: { $lte: now },
+            status: 'active'
+        });
+
+        for (const job of expiredJobs) {
+            // Check if notification already sent to avoid duplicates
+            const existingNotification = await Notification.findOne({
+                recipient: job.created_by,
+                'data.jobId': job._id,
+                type: 'job_expiry'
+            });
+
+            if (!existingNotification) {
+                await createNotification(
+                    job.created_by,
+                    'job_expiry',
+                    `Job Deadline Passed: ${job.title}`,
+                    `Deadline for "${job.title}" has passed. Confirm deletion or sustain with a new deadline.`,
+                    "",
+                    { jobId: job._id, jobTitle: job.title }
+                );
+            }
+        }
+    } catch (error) {
+        console.error("Error in checkExpiredJobs:", error);
+    }
+};
+
+// Check every 1 minute
+setInterval(checkExpiredJobs, 60 * 1000);

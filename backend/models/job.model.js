@@ -32,6 +32,9 @@ const jobSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    applyBy: {
+        type: Date
+    },
     company: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',

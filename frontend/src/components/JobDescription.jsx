@@ -60,7 +60,7 @@ const JobDescription = () => {
                     <div className='space-y-4'>
                         <h1 className='font-black text-4xl md:text-5xl text-slate-900 tracking-tight leading-tight'>{singleJob?.title}</h1>
                         <div className='flex flex-wrap items-center gap-3'>
-                            <Badge className='bg-blue-50 text-blue-600 border-none font-bold px-4 py-2 rounded-xl text-sm' variant="outline">{singleJob?.postion} Positions</Badge>
+                            <Badge className='bg-blue-50 text-blue-600 border-none font-bold px-4 py-2 rounded-xl text-sm' variant="outline">{singleJob?.position} Positions</Badge>
                             <Badge className='bg-rose-50 text-rose-600 border-none font-bold px-4 py-2 rounded-xl text-sm' variant="outline">{singleJob?.jobType}</Badge>
                             <Badge className='bg-emerald-50 text-emerald-600 border-none font-bold px-4 py-2 rounded-xl text-sm' variant="outline">{singleJob?.salary}LPA</Badge>
                         </div>
@@ -92,6 +92,24 @@ const JobDescription = () => {
                                 {singleJob?.description || "No detailed description provided."}
                             </p>
                         </div>
+
+                        <div className='bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl'>
+                            <h2 className='text-2xl font-black text-slate-900 mb-8 flex items-center gap-4'>
+                                <span className='h-10 w-1.5 bg-emerald-600 rounded-full'></span>
+                                Skills Required
+                            </h2>
+                            <div className='flex flex-wrap gap-3'>
+                                {
+                                    singleJob?.requirements?.length > 0 ? (
+                                        singleJob.requirements.map((skill, index) => (
+                                            <Badge key={index} className='bg-slate-50 text-slate-600 border border-slate-100 font-bold px-4 py-2 rounded-xl text-sm'>{skill}</Badge>
+                                        ))
+                                    ) : (
+                                        <p className='text-slate-400 font-medium italic'>No specific skills listed.</p>
+                                    )
+                                }
+                            </div>
+                        </div>
                     </div>
 
                     <div className='space-y-8'>
@@ -116,7 +134,7 @@ const JobDescription = () => {
                                     <div className='p-3 bg-amber-50 rounded-[1rem] text-amber-600'><div className='h-6 w-6 font-black flex items-center justify-center text-xl'>Exp</div></div>
                                     <div>
                                         <p className='text-[10px] text-slate-400 uppercase font-black tracking-[0.2em]'>Experience</p>
-                                        <p className='text-slate-900 font-bold text-lg'>{singleJob?.experience} Years</p>
+                                        <p className='text-slate-900 font-bold text-lg'>{singleJob?.experienceLevel} Years</p>
                                     </div>
                                 </div>
                                 <div className='flex items-start gap-5'>
@@ -126,6 +144,17 @@ const JobDescription = () => {
                                         <p className='text-slate-900 font-bold text-lg'>{singleJob?.salary} LPA</p>
                                     </div>
                                 </div>
+                                {singleJob?.applyBy && (
+                                    <div className='flex items-start gap-5'>
+                                        <div className='p-3 bg-rose-50 rounded-[1rem] text-rose-600'>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                        </div>
+                                        <div>
+                                            <p className='text-[10px] text-slate-400 uppercase font-black tracking-[0.2em]'>Apply By</p>
+                                            <p className='text-slate-900 font-bold text-lg'>{new Date(singleJob.applyBy).toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -133,7 +162,7 @@ const JobDescription = () => {
                             <p className='text-indigo-100 text-xs mb-2 uppercase font-black tracking-[0.2em]'>Applications Received</p>
                             <span className='text-5xl font-black'>{singleJob?.applications?.length || 0}</span>
                             <div className='h-px bg-indigo-500/30 my-6'></div>
-                            <p className='text-indigo-100 text-[10px] font-bold uppercase tracking-wider'>Posted on {singleJob?.createdAt.split("T")[0]}</p>
+                            <p className='text-indigo-100 text-[10px] font-bold uppercase tracking-wider'>Posted on {singleJob?.createdAt?.split("T")[0]}</p>
                         </div>
                     </div>
                 </div>

@@ -23,7 +23,8 @@ const JobSetup = () => {
         jobType: "",
         experience: "",
         position: 0,
-        companyId: ""
+        companyId: "",
+        applyBy: ""
     });
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -74,7 +75,8 @@ const JobSetup = () => {
                         jobType: job.jobType || "",
                         experience: job.experienceLevel || "",
                         position: job.position || 0,
-                        companyId: job.company?._id || job.company || ""
+                        companyId: job.company?._id || job.company || "",
+                        applyBy: job.applyBy ? new Date(job.applyBy).toISOString().slice(0, 16) : ""
                     });
                 }
             } catch (error) {
@@ -175,6 +177,16 @@ const JobSetup = () => {
                                 type="number"
                                 name="position"
                                 value={input.position}
+                                onChange={changeEventHandler}
+                                className="bg-slate-50 border-slate-200 text-slate-900 rounded-xl focus:ring-indigo-500 h-12"
+                            />
+                        </div>
+                        <div className='space-y-2'>
+                            <Label className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Apply By (Deadline)</Label>
+                            <Input
+                                type="datetime-local"
+                                name="applyBy"
+                                value={input.applyBy}
                                 onChange={changeEventHandler}
                                 className="bg-slate-50 border-slate-200 text-slate-900 rounded-xl focus:ring-indigo-500 h-12"
                             />
