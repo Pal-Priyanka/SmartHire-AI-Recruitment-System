@@ -52,7 +52,7 @@ export const applyJob = async (req, res) => {
             }
         }
 
-        const insights = generateMatchInsights(
+        const insights = await generateMatchInsights(
             resumeText,
             {
                 title: job.title,

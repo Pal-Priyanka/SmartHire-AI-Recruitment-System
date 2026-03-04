@@ -8,6 +8,8 @@
  *   10% — Additional Factors (keyword relevance, soft skills, projects)
  */
 
+import { analyzeWithOllama } from './ollama.service.js';
+
 // ─────────────────────────────────────────────
 // 1. COMPREHENSIVE SKILL TAXONOMY & SYNONYMS
 // ─────────────────────────────────────────────
@@ -446,7 +448,41 @@ export const predictRole = (skills) => {
 // 9. MAIN: generateMatchInsights (40:30:20:10)
 // ─────────────────────────────────────────────
 
-export const generateMatchInsights = (resumeText, jobData, parsedData = {}, user = {}) => {
+export const generateMatchInsights = async (resumeText, jobData, parsedData = {}, user = {}) => {
+    // ── TRY OLLAMA FIRST (Semantic LLM Analysis) ──
+    const ollamaResult = await analyzeWithOllama(resumeText, jobData);
+
+    if (ollamaResult) {
+        // Return Ollama results but ensure display fields (experience, education) are populated
+        // if the LLM didn't return them in the expected format OR if we want to trust our extraction more.
+
+        // Use our existing extraction for text fields if they are missing or "Not Specified"
+        const candidateExp = (user?.profile?.experience > 0)
+            ? user.profile.experience
+            : (parsedData.experience > 0 ? parsedData.experience : extractExperienceYears(resumeText));
+
+        const finalExperience = (user?.profile?.experience > 0)
+            ? `${user.profile.experience}+ Years`
+            : (candidateExp > 0 ? `${candidateExp}+ Years` : "Not Specified");
+
+        const finalEducation = (user?.profile?.education && user.profile.education !== "Not Specified")
+            ? user.profile.education
+            : (parsedData.education || "Not Specified");
+
+        const profileCerts = user?.profile?.certifications || [];
+        const parsedCerts = parsedData.certifications || [];
+        const finalCertifications = [...new Set([...profileCerts, ...parsedCerts])];
+
+        return {
+            ...ollamaResult,
+            experience: finalExperience,
+            education: finalEducation,
+            certifications: finalCertifications
+        };
+    }
+
+    // ── FALLBACK TO RULE-BASED ENGINE ──
+    console.log("[MatchInsights] Falling back to rule-based engine.");
     const jdText = `${jobData.title || ''} ${jobData.description || ''} ${(jobData.requirements || []).join(' ')}`;
     const requiredSkillsRaw = jobData.requirements || [];
 

@@ -178,8 +178,8 @@ export const getJobMatch = async (req, res) => {
             resumeText = fallbackParts.join(' ');
         }
 
-        // Combine semantic match insights + structured breakdown
-        const insights = generateMatchInsights(resumeText, job, parsedData, user);
+        // Combine semantic match insights + structured breakdown (Asynchronous)
+        const insights = await generateMatchInsights(resumeText, job, parsedData, user);
 
         return res.status(200).json({
             insights,
