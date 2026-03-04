@@ -40,17 +40,18 @@ app.use("/api/auth", userRoute); // login, register, logout, me, change-password
 app.use("/api/users", userRoute); // profile routes
 app.use("/api/jobs", jobRoute);
 app.use("/api/applications", applicationRoute);
-app.use("/api/companies", companyRoute); // Retaining company routes as they are useful for recruiters
+app.use("/api/companies", companyRoute);
 app.use("/api/interviews", interviewRoute);
 app.use("/api/analytics", analyticsRoute);
 app.use("/api/notifications", notificationRoute);
 
 
-server.listen(PORT, () => {
-    connectDB().then(() => {
+// FIX H3: Connect to DB BEFORE starting the HTTP server
+connectDB().then(() => {
+    server.listen(PORT, () => {
         console.log(`Server running at port ${PORT}`);
         // Check for expired jobs every minute
         setInterval(checkExpiredJobs, 60 * 1000);
         checkExpiredJobs();
     });
-})
+});

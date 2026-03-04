@@ -30,7 +30,7 @@ export const scheduleInterview = async (req, res) => {
 
             // Overlap check (including 30 min buffer)
             const waitBuffer = 30 * 60000;
-            return (newStart < existingEnd + waitBuffer && newEnd + waitBuffer > existingStart);
+            return (newStart.getTime() < existingEnd.getTime() + waitBuffer && newEnd.getTime() + waitBuffer > existingStart.getTime());
         });
 
         if (hasConflict) {

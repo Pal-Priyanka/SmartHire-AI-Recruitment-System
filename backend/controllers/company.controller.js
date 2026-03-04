@@ -121,15 +121,25 @@ export const updateCompany = async (req, res) => {
 export const deleteCompany = async (req, res) => {
     try {
         const companyId = req.params.id;
-        const company = await Company.findByIdAndDelete(companyId);
+        const company = await Company.findById(companyId);
         if (!company) {
             return res.status(404).json({
                 message: "Company not found.",
                 success: false
             })
         }
+
+        // Cascade: delete associated jobs and their applications
+        const { Job } = await import("../models/job.model.js");
+        const { Application } = await import("../models/application.model.js");
+        const jobs = await Job.find({ company: companyId });
+        const jobIds = jobs.map(j => j._id);
+        await Application.deleteMany({ job: { $in: jobIds } });
+        await Job.deleteMany({ company: companyId });
+        await Company.findByIdAndDelete(companyId);
+
         return res.status(200).json({
-            message: "Company deleted successfully.",
+            message: "Company and all associated data deleted successfully.",
             success: true
         })
     } catch (error) {

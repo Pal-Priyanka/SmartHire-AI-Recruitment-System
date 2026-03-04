@@ -19,6 +19,7 @@ import ProtectedRoute from './components/admin/ProtectedRoute'
 import RecruiterAnalytics from './components/admin/RecruiterAnalytics'
 import RecruiterInterviews from './components/admin/RecruiterInterviews'
 import CandidateInterviews from './components/CandidateInterviews'
+import AuthProtectedRoute from './components/AuthProtectedRoute'
 
 
 const appRouter = createBrowserRouter([
@@ -48,15 +49,15 @@ const appRouter = createBrowserRouter([
   },
   {
     path: "/profile",
-    element: <Profile />
+    element: <AuthProtectedRoute><Profile /></AuthProtectedRoute>
   },
   {
     path: "/interviews",
-    element: <CandidateInterviews />
+    element: <AuthProtectedRoute><CandidateInterviews /></AuthProtectedRoute>
   },
   {
     path: "/saved-jobs",
-    element: <SavedJobs />
+    element: <AuthProtectedRoute><SavedJobs /></AuthProtectedRoute>
   },
   // admin ke liye yha se start hoga
   {

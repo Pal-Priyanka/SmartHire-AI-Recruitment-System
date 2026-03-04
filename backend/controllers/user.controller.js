@@ -99,7 +99,7 @@ export const login = async (req, res) => {
             profile: user.profile
         }
 
-        return res.status(200).cookie("token", token, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict' }).json({
+        return res.status(200).cookie("token", token, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production' }).json({
             message: `Welcome back ${user.fullname}`,
             user,
             success: true
@@ -175,7 +175,10 @@ export const updateProfile = async (req, res) => {
         if (email) user.email = email
         if (phoneNumber) user.phoneNumber = phoneNumber
         if (bio) user.profile.bio = bio
-        if (skills) user.profile.skills = skillsArray
+        if (skills) {
+            skillsArray = skills.split(",").map(s => s.trim());
+            user.profile.skills = skillsArray;
+        }
         if (experience !== undefined) user.profile.experience = Number(experience)
         if (education) user.profile.education = education
         if (certifications) {

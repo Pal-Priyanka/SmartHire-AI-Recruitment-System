@@ -239,9 +239,13 @@ export const deleteJob = async (req, res) => {
             return res.status(403).json({ message: "You are not authorized to delete this job", success: false });
         }
 
+        // Cascade: delete all applications for this job
+        const { Application } = await import("../models/application.model.js");
+        await Application.deleteMany({ job: jobId });
+
         await Job.findByIdAndDelete(jobId);
 
-        return res.status(200).json({ message: "Job deleted successfully", success: true });
+        return res.status(200).json({ message: "Job and associated applications deleted successfully", success: true });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal server error while deleting job", success: false });

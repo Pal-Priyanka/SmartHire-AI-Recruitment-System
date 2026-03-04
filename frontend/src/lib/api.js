@@ -19,9 +19,11 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            // Global Logout on Unauthorized
-            store.dispatch(setUser(null));
-            window.location.href = "/login";
+            // Global Logout on Unauthorized — but prevent infinite loop on /login
+            if (window.location.pathname !== '/login') {
+                store.dispatch(setUser(null));
+                window.location.href = "/login";
+            }
         }
         return Promise.reject(error);
     }
