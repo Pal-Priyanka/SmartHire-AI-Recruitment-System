@@ -348,8 +348,35 @@ const SmartHireAdvisor = ({ jobId }) => {
                         </div>
                         <div className='flex items-center gap-1.5 mt-4'>
                             <Target className='h-3.5 w-3.5 text-indigo-500' />
-                            <span className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Semantic Match Score</span>
+                            <span className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Weighted Match Score</span>
                         </div>
+
+                        {/* Score Breakdown Bars */}
+                        {insights.scoreBreakdown && (
+                            <div className='w-full px-6 mt-5 space-y-2.5'>
+                                {[
+                                    { label: 'Skills', value: insights.scoreBreakdown.skills, max: 40, color: 'bg-emerald-500' },
+                                    { label: 'Experience', value: insights.scoreBreakdown.experience, max: 30, color: 'bg-blue-500' },
+                                    { label: 'Education', value: insights.scoreBreakdown.education, max: 20, color: 'bg-purple-500' },
+                                    { label: 'Additional', value: insights.scoreBreakdown.additional, max: 10, color: 'bg-amber-500' },
+                                ].map((item, i) => (
+                                    <div key={i}>
+                                        <div className='flex justify-between items-center mb-0.5'>
+                                            <span className='text-[9px] font-bold text-slate-500 uppercase tracking-wider'>{item.label} ({item.max}%)</span>
+                                            <span className='text-[9px] font-black text-slate-700'>{item.value || 0}/{item.max}</span>
+                                        </div>
+                                        <div className='h-1.5 bg-slate-100 rounded-full overflow-hidden'>
+                                            <motion.div
+                                                className={`h-full rounded-full ${item.color}`}
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${item.max > 0 ? ((item.value || 0) / item.max) * 100 : 0}%` }}
+                                                transition={{ duration: 1, delay: 0.3 + i * 0.15 }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Profile Summary / Extracted Data */}

@@ -1,192 +1,555 @@
 /**
- * NLP Semantic Matching Service
- * Provides deep text analysis, skill extraction, and similarity scoring.
+ * NLP Semantic Matching Service — SmartHire Advisor Engine
+ * 
+ * Scoring Weights (STRICTLY ENFORCED):
+ *   40% — Skills Match
+ *   30% — Relevant Experience
+ *   20% — Education & Certifications
+ *   10% — Additional Factors (keyword relevance, soft skills, projects)
  */
 
-// Comprehensive skill taxonomy
-const SKILL_TAXONOMY = {
-    technical: [
-        "javascript", "react", "node.js", "python", "java", "cpp", "c++", "c#", "ruby", "golang", "php", "typescript",
-        "html", "css", "sass", "tailwind", "bootstrap", "mongodb", "sql", "postgresql", "mysql", "redis", "docker",
-        "kubernetes", "aws", "azure", "gcp", "firebase", "git", "rest api", "graphql", "redux", "express", "next.js",
-        "django", "flask", "pytorch", "tensorflow", "scikit-learn", "pandas", "numpy", "machine learning", "ai",
-        "data science", "devops", "ci/cd", "microservices", "unit testing", "jest", "cypress"
-    ],
-    soft: [
-        "leadership", "communication", "teamwork", "problem solving", "time management", "critical thinking",
-        "adaptability", "creativity", "emotional intelligence", "negotiation", "conflict resolution", "mentoring"
-    ],
-    normalization: {
-        "js": "javascript",
-        "ts": "typescript",
-        "reactjs": "react",
-        "nodejs": "node.js",
-        "ml": "machine learning",
-        "dl": "deep learning",
-        "nlp": "natural language processing",
-        "k8s": "kubernetes",
-        "postgres": "postgresql"
-    }
+// ─────────────────────────────────────────────
+// 1. COMPREHENSIVE SKILL TAXONOMY & SYNONYMS
+// ─────────────────────────────────────────────
+
+const SKILL_SYNONYMS = {
+    // JavaScript ecosystem
+    "javascript": ["js", "es6", "es2015", "ecmascript", "vanilla js"],
+    "typescript": ["ts"],
+    "react": ["reactjs", "react.js", "react js"],
+    "node.js": ["nodejs", "node", "node js"],
+    "next.js": ["nextjs", "next js"],
+    "express": ["expressjs", "express.js"],
+    "vue": ["vuejs", "vue.js", "vue js"],
+    "angular": ["angularjs", "angular.js", "angular js"],
+    "redux": ["react redux", "redux toolkit", "rtk"],
+
+    // Python ecosystem
+    "python": ["py", "python3"],
+    "django": ["django rest", "drf"],
+    "flask": ["flask api"],
+    "pandas": [],
+    "numpy": [],
+    "scikit-learn": ["sklearn", "scikit learn"],
+    "pytorch": ["torch"],
+    "tensorflow": ["tf", "keras"],
+
+    // Databases
+    "mongodb": ["mongo", "mongoose"],
+    "sql": ["structured query language"],
+    "postgresql": ["postgres", "pg"],
+    "mysql": ["my sql"],
+    "redis": [],
+    "firebase": ["firestore"],
+
+    // Cloud & DevOps
+    "aws": ["amazon web services", "ec2", "s3", "lambda"],
+    "azure": ["microsoft azure"],
+    "gcp": ["google cloud", "google cloud platform"],
+    "docker": ["containerization", "containers"],
+    "kubernetes": ["k8s", "kube"],
+    "ci/cd": ["cicd", "ci cd", "continuous integration", "continuous deployment", "jenkins", "github actions"],
+    "git": ["github", "gitlab", "bitbucket", "version control"],
+
+    // Languages
+    "java": [],
+    "c++": ["cpp", "c plus plus"],
+    "c#": ["csharp", "c sharp", "dotnet", ".net"],
+    "ruby": ["ruby on rails", "rails", "ror"],
+    "golang": ["go lang", "go programming"],
+    "php": ["laravel", "symfony"],
+    "swift": [],
+    "kotlin": [],
+    "rust": [],
+    "scala": [],
+
+    // AI/ML
+    "machine learning": ["ml", "supervised learning", "unsupervised learning"],
+    "deep learning": ["dl", "neural networks", "cnn", "rnn", "lstm"],
+    "natural language processing": ["nlp", "text mining", "text analysis"],
+    "computer vision": ["cv", "image recognition", "object detection"],
+    "ai": ["artificial intelligence"],
+    "data science": ["data analytics", "data analysis", "big data"],
+
+    // Frontend
+    "html": ["html5"],
+    "css": ["css3", "stylesheet"],
+    "sass": ["scss"],
+    "tailwind": ["tailwindcss", "tailwind css"],
+    "bootstrap": [],
+
+    // API & Architecture
+    "rest api": ["restful", "rest", "api development"],
+    "graphql": ["gql"],
+    "microservices": ["micro services", "service oriented"],
+
+    // Testing
+    "unit testing": ["tdd", "test driven"],
+    "jest": [],
+    "cypress": [],
+    "selenium": [],
+    "mocha": [],
+
+    // Mobile
+    "react native": ["rn"],
+    "flutter": ["dart"],
+    "android": ["android development"],
+    "ios": ["ios development"],
+
+    // Tools
+    "figma": [],
+    "jira": [],
+    "agile": ["scrum", "kanban", "sprint"],
+    "linux": ["ubuntu", "centos", "bash", "shell scripting"],
 };
 
-/**
- * Preprocess text: lowercasing, noise removal, and basic normalization
- */
+const SOFT_SKILLS = [
+    "leadership", "communication", "teamwork", "team player", "problem solving",
+    "time management", "critical thinking", "adaptability", "creativity",
+    "emotional intelligence", "negotiation", "conflict resolution", "mentoring",
+    "collaboration", "analytical", "strategic thinking", "decision making",
+    "project management", "stakeholder management", "interpersonal"
+];
+
+// Build a reverse lookup: alias → canonical skill
+const ALIAS_TO_CANONICAL = {};
+for (const [canonical, aliases] of Object.entries(SKILL_SYNONYMS)) {
+    ALIAS_TO_CANONICAL[canonical.toLowerCase()] = canonical.toLowerCase();
+    for (const alias of aliases) {
+        ALIAS_TO_CANONICAL[alias.toLowerCase()] = canonical.toLowerCase();
+    }
+}
+
+// All known canonical skill names (for taxonomy lookup)
+const ALL_TECHNICAL_SKILLS = Object.keys(SKILL_SYNONYMS).map(s => s.toLowerCase());
+
+// ─────────────────────────────────────────────
+// 2. TEXT PREPROCESSING
+// ─────────────────────────────────────────────
+
 export const preprocessText = (text) => {
     if (!text) return "";
     let processed = text.toLowerCase();
 
-    // Remove URLs, emails, and symbols but preserve + and # for C++, C#, etc.
+    // Remove URLs and emails
     processed = processed.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '');
-    processed = processed.replace(/([^a-z0-9+#\s])/g, ' '); // More selective removal
-    processed = processed.replace(/\s+/g, ' ').trim();
+    processed = processed.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '');
 
-    // Basic normalization based on taxonomy
-    Object.keys(SKILL_TAXONOMY.normalization).forEach(term => {
-        const regex = new RegExp(`\\b${term}\\b`, 'g');
-        processed = processed.replace(regex, SKILL_TAXONOMY.normalization[term]);
-    });
+    // Preserve technical symbols: +, #, . when adjacent to alphanumeric
+    // But remove other noise symbols
+    processed = processed.replace(/([^a-z0-9+#./\s@-])/g, ' ');
+    processed = processed.replace(/\s+/g, ' ').trim();
 
     return processed;
 };
 
+// ─────────────────────────────────────────────
+// 3. SKILL EXTRACTION (with synonym resolution)
+// ─────────────────────────────────────────────
+
 /**
- * Extract structured skills from text
+ * Normalize a single skill string to its canonical form.
+ */
+const normalizeSkill = (skill) => {
+    const lower = skill.toLowerCase().trim();
+    return ALIAS_TO_CANONICAL[lower] || lower;
+};
+
+/**
+ * Extract skills from text using multi-strategy matching.
+ * Returns canonical skill names.
  */
 export const extractSkills = (text) => {
     const processed = preprocessText(text);
-    const foundTechnical = SKILL_TAXONOMY.technical.filter(skill =>
-        processed.includes(skill.toLowerCase())
-    );
-    const foundSoft = SKILL_TAXONOMY.soft.filter(skill =>
-        processed.includes(skill.toLowerCase())
-    );
+    const foundTechnical = new Set();
+    const foundSoft = new Set();
+
+    // Strategy 1: Check every known skill and all its aliases against the text
+    for (const [canonical, aliases] of Object.entries(SKILL_SYNONYMS)) {
+        const allForms = [canonical, ...aliases];
+        for (const form of allForms) {
+            const lowerForm = form.toLowerCase();
+            // Use word boundary matching for short terms, substring for multi-word
+            if (lowerForm.length <= 3) {
+                // Short terms need word boundaries to avoid false positives
+                const regex = new RegExp(`(?:^|\\s|[,;|/])${escapeRegex(lowerForm)}(?:$|\\s|[,;|/])`, 'i');
+                if (regex.test(processed)) {
+                    foundTechnical.add(canonical.toLowerCase());
+                    break;
+                }
+            } else {
+                if (processed.includes(lowerForm)) {
+                    foundTechnical.add(canonical.toLowerCase());
+                    break;
+                }
+            }
+        }
+    }
+
+    // Strategy 2: Soft skills
+    for (const skill of SOFT_SKILLS) {
+        if (processed.includes(skill.toLowerCase())) {
+            foundSoft.add(skill.toLowerCase());
+        }
+    }
 
     return {
-        all: [...new Set([...foundTechnical, ...foundSoft])],
-        technical: foundTechnical,
-        soft: foundSoft
+        all: [...foundTechnical, ...foundSoft],
+        technical: [...foundTechnical],
+        soft: [...foundSoft]
     };
 };
 
-export const calculateSimilarity = (text1, text2) => {
-    const words1 = preprocessText(text1).split(' ').filter(w => w.length > 2);
-    const words2 = preprocessText(text2).split(' ').filter(w => w.length > 2);
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
-    if (words1.length === 0 || words2.length === 0) return 0;
+// ─────────────────────────────────────────────
+// 4. FUZZY SKILL MATCHING
+// ─────────────────────────────────────────────
 
-    const set1 = new Set(words1);
-    const set2 = new Set(words2);
+/**
+ * Calculate Levenshtein distance between two strings.
+ */
+const levenshtein = (a, b) => {
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
 
-    // 1. Overlap Coefficient (Keyword Match)
-    const intersection = new Set([...set1].filter(x => set2.has(x)));
-    const overlap = intersection.size / Math.min(set1.size, set2.size);
-
-    // 2. Cosine Similarity (Semantic)
-    const uniqueWords = [...new Set([...words1, ...words2])];
-    const vector1 = uniqueWords.map(word => words1.filter(w => w === word).length);
-    const vector2 = uniqueWords.map(word => words2.filter(w => w === word).length);
-
-    const dotProduct = vector1.reduce((acc, current, i) => acc + current * vector2[i], 0);
-    const magnitude1 = Math.sqrt(vector1.reduce((acc, current) => acc + current * current, 0));
-    const magnitude2 = Math.sqrt(vector2.reduce((acc, current) => acc + current * current, 0));
-
-    const cosine = (magnitude1 && magnitude2) ? dotProduct / (magnitude1 * magnitude2) : 0;
-
-    // Hybrid Score: 50% Cosine, 50% Overlap
-    return (cosine * 0.5) + (overlap * 0.5);
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b[i - 1] === a[j - 1]) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j] + 1
+                );
+            }
+        }
+    }
+    return matrix[b.length][a.length];
 };
 
 /**
- * Generate full Match Insights
+ * Match a required skill against a list of resume skills.
+ * Returns a score between 0 and 1.
+ *   1.0 = exact match (after normalization)
+ *   0.8 = fuzzy match (Levenshtein distance ≤ 2)
+ *   0.0 = no match
  */
+const matchSkill = (requiredSkill, resumeSkills, resumeText) => {
+    const normalizedReq = normalizeSkill(requiredSkill);
+
+    // Check 1: Exact canonical match in extracted skills
+    if (resumeSkills.includes(normalizedReq)) {
+        return 1.0;
+    }
+
+    // Check 2: The required skill (or any alias) appears directly in resume text
+    const processed = preprocessText(resumeText);
+    const allForms = [requiredSkill.toLowerCase()];
+    if (SKILL_SYNONYMS[normalizedReq]) {
+        allForms.push(normalizedReq, ...SKILL_SYNONYMS[normalizedReq].map(s => s.toLowerCase()));
+    }
+    for (const form of allForms) {
+        if (processed.includes(form)) {
+            return 0.95;
+        }
+    }
+
+    // Check 3: Fuzzy match — Levenshtein distance
+    for (const resumeSkill of resumeSkills) {
+        const dist = levenshtein(normalizedReq, resumeSkill);
+        const maxLen = Math.max(normalizedReq.length, resumeSkill.length);
+        if (maxLen > 0 && dist <= 2 && (dist / maxLen) < 0.4) {
+            return 0.8;
+        }
+    }
+
+    // Check 4: Partial substring match in resume text (e.g., "react" in "react native")
+    for (const form of allForms) {
+        if (form.length >= 4 && processed.includes(form)) {
+            return 0.6;
+        }
+    }
+
+    return 0.0;
+};
+
+// ─────────────────────────────────────────────
+// 5. EXPERIENCE SCORING
+// ─────────────────────────────────────────────
+
 /**
- * Predict the professional role based on extracted skills
+ * Extract years of experience from text.
  */
+const extractExperienceYears = (text) => {
+    if (!text) return 0;
+    const patterns = [
+        /(\d+)\+?\s*years?\s*(?:of\s*)?experience/i,
+        /(\d+)\+?\s*years?\s*(?:exp)/i,
+        /(?:total\s*)?experience[:\s]+(\d+)\+?\s*years?/i,
+        /(\d+)\+?\s*years?\s*in\s*(?:the\s*)?industry/i,
+        /(\d+)\s*yrs?\s*(?:exp|experience)/i,
+        /experience\s*(?:of\s*)?(\d+)\s*years?/i,
+        /(\d+)\+?\s*years?\s*(?:of\s*)?(?:professional|work|relevant)/i
+    ];
+
+    let maxExp = 0;
+    for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match) {
+            maxExp = Math.max(maxExp, parseInt(match[1]));
+        }
+    }
+
+    // Also try date range calculation
+    const dateRangeRegex = /(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{4})\s*[-–]\s*(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{4})|present|current)/gi;
+    let totalMonths = 0;
+    const matches = text.matchAll(dateRangeRegex);
+    for (const match of matches) {
+        const startYear = parseInt(match[1]);
+        const endYear = match[2] ? parseInt(match[2]) : new Date().getFullYear();
+        if (startYear > 1990 && endYear >= startYear) {
+            totalMonths += (endYear - startYear) * 12;
+        }
+    }
+    if (totalMonths > 0) {
+        maxExp = Math.max(maxExp, Math.round(totalMonths / 12));
+    }
+
+    return maxExp;
+};
+
+/**
+ * Score experience match (0–100, will be weighted to 30%).
+ */
+const scoreExperience = (candidateExp, requiredExp) => {
+    if (requiredExp === 0 || requiredExp === undefined) {
+        // No experience requirement — give high score but not full
+        return candidateExp > 0 ? 90 : 70;
+    }
+
+    const ratio = candidateExp / requiredExp;
+    if (ratio >= 1.0) return 100;      // Meets or exceeds
+    if (ratio >= 0.75) return 85;      // Close match
+    if (ratio >= 0.5) return 65;       // Partial match
+    if (ratio >= 0.25) return 40;      // Some experience
+    if (candidateExp > 0) return 25;   // Minimal experience
+    return 10;                          // No experience (not 0 — avoid zeroing)
+};
+
+// ─────────────────────────────────────────────
+// 6. EDUCATION & CERTIFICATION SCORING
+// ─────────────────────────────────────────────
+
+const DEGREE_LEVELS = {
+    "phd": 100, "doctorate": 100,
+    "master": 90, "masters": 90, "mtech": 90, "m.tech": 90, "mba": 90, "msc": 90, "m.sc": 90, "mca": 90,
+    "bachelor": 75, "bachelors": 75, "btech": 75, "b.tech": 75, "be": 70, "b.e": 70,
+    "bsc": 70, "b.sc": 70, "bca": 70, "degree": 65, "graduate": 60, "undergraduate": 55,
+    "diploma": 45, "associate": 40, "certification": 35, "certificate": 35
+};
+
+/**
+ * Score education and certifications (0–100, will be weighted to 20%).
+ */
+const scoreEducation = (resumeText, certifications, jdText) => {
+    const lowerResume = (resumeText || "").toLowerCase().replace(/\./g, '');
+    const lowerJd = (jdText || "").toLowerCase();
+
+    // Education scoring (60% of education component)
+    let educationScore = 20; // Base score for any resume
+    for (const [keyword, score] of Object.entries(DEGREE_LEVELS)) {
+        if (lowerResume.includes(keyword)) {
+            educationScore = Math.max(educationScore, score);
+        }
+    }
+
+    // Certification scoring (40% of education component)
+    let certScore = 0;
+    if (certifications && certifications.length > 0) {
+        // Having certifications is good
+        certScore = Math.min(100, 30 + certifications.length * 15);
+
+        // Bonus if certifications match JD keywords
+        const matchingCerts = certifications.filter(cert =>
+            lowerJd.includes(cert.toLowerCase())
+        );
+        if (matchingCerts.length > 0) {
+            certScore = Math.min(100, certScore + matchingCerts.length * 20);
+        }
+    }
+
+    // Combined: 60% education, 40% certifications
+    return Math.round(educationScore * 0.6 + certScore * 0.4);
+};
+
+// ─────────────────────────────────────────────
+// 7. ADDITIONAL FACTORS SCORING
+// ─────────────────────────────────────────────
+
+/**
+ * Score additional factors (0–100, will be weighted to 10%).
+ * Includes: keyword relevance, soft skills, and text similarity.
+ */
+const scoreAdditionalFactors = (resumeText, jdText, softSkillsFound) => {
+    const resumeWords = preprocessText(resumeText).split(' ').filter(w => w.length > 3);
+    const jdWords = preprocessText(jdText).split(' ').filter(w => w.length > 3);
+
+    if (resumeWords.length === 0 || jdWords.length === 0) return 20;
+
+    // Keyword relevance: % of JD keywords found in resume
+    const jdSet = new Set(jdWords);
+    const resumeSet = new Set(resumeWords);
+    const commonKeywords = [...jdSet].filter(w => resumeSet.has(w));
+    const keywordRelevance = (commonKeywords.length / jdSet.size) * 100;
+
+    // Soft skills bonus
+    const softSkillScore = Math.min(100, softSkillsFound.length * 20);
+
+    // Combined: 70% keyword relevance, 30% soft skills
+    return Math.round(keywordRelevance * 0.7 + softSkillScore * 0.3);
+};
+
+// ─────────────────────────────────────────────
+// 8. ROLE PREDICTION
+// ─────────────────────────────────────────────
+
 export const predictRole = (skills) => {
     const roles = {
-        "Frontend Developer": ["react", "javascript", "html", "css", "tailwind", "next.js", "bootstrap", "typescript"],
-        "Backend Developer": ["node.js", "express", "python", "django", "flask", "java", "spring", "sql", "postgresql", "mongodb"],
-        "Full Stack Developer": ["react", "node.js", "javascript", "express", "mongodb", "sql", "next.js"],
-        "Data Scientist": ["python", "pandas", "numpy", "scikit-learn", "pytorch", "tensorflow", "machine learning", "ai"],
-        "DevOps Engineer": ["docker", "kubernetes", "aws", "azure", "ci/cd", "git", "jenkins", "terraform"],
+        "Frontend Developer": ["react", "javascript", "html", "css", "tailwind", "next.js", "bootstrap", "typescript", "vue", "angular"],
+        "Backend Developer": ["node.js", "express", "python", "django", "flask", "java", "sql", "postgresql", "mongodb", "redis"],
+        "Full Stack Developer": ["react", "node.js", "javascript", "express", "mongodb", "sql", "next.js", "typescript"],
+        "Data Scientist": ["python", "pandas", "numpy", "scikit-learn", "pytorch", "tensorflow", "machine learning", "ai", "data science"],
+        "DevOps Engineer": ["docker", "kubernetes", "aws", "azure", "ci/cd", "git", "linux"],
         "Mobile Developer": ["react native", "flutter", "swift", "kotlin", "android", "ios"]
     };
 
     let bestRole = "Software Engineer";
     let maxMatch = 0;
 
-    Object.keys(roles).forEach(role => {
-        const matchCount = roles[role].filter(skill => skills.includes(skill)).length;
+    for (const [role, roleSkills] of Object.entries(roles)) {
+        const matchCount = roleSkills.filter(skill => skills.includes(skill)).length;
         if (matchCount > maxMatch) {
             maxMatch = matchCount;
             bestRole = role;
         }
-    });
+    }
 
     return bestRole;
 };
 
-export const generateMatchInsights = (resumeText, jobData, parsedData = {}, user = {}) => {
-    const jdText = `${jobData.title} ${jobData.description} ${jobData.requirements.join(' ')}`;
+// ─────────────────────────────────────────────
+// 9. MAIN: generateMatchInsights (40:30:20:10)
+// ─────────────────────────────────────────────
 
+export const generateMatchInsights = (resumeText, jobData, parsedData = {}, user = {}) => {
+    const jdText = `${jobData.title || ''} ${jobData.description || ''} ${(jobData.requirements || []).join(' ')}`;
+    const requiredSkillsRaw = jobData.requirements || [];
+
+    // ── EXTRACT ──
     const resumeSkillsData = extractSkills(resumeText);
     const jdSkillsData = extractSkills(jdText);
     const resumeSkills = resumeSkillsData.all;
     const jdSkills = jdSkillsData.all;
 
-    const matchingSkills = jdSkills.filter(skill => resumeSkills.includes(skill));
-    const missingSkills = jdSkills.filter(skill => !resumeSkills.includes(skill));
+    // ── SKILLS MATCH (40%) ──
+    let skillScoreRaw = 0;
+    const matchingSkills = [];
+    const missingSkills = [];
+    const partialMatches = [];
 
-    const similarity = calculateSimilarity(resumeText, jdText);
+    // Match each JD requirement (both extracted skills and raw requirements)
+    const allRequirements = [...new Set([...jdSkills, ...requiredSkillsRaw.map(r => normalizeSkill(r))])];
 
-    // Skill-weighted score
-    const skillScore = jdSkills.length > 0 ? (matchingSkills.length / jdSkills.length) * 100 : 50;
-    const baseScore = similarity * 100;
+    if (allRequirements.length > 0) {
+        let totalMatchScore = 0;
 
-    // Combined Score with high sensitivity weighting (50% similarity, 50% skill match)
-    const finalScore = Math.min(100, Math.round((baseScore * 0.5) + (skillScore * 0.5)));
+        for (const req of allRequirements) {
+            const score = matchSkill(req, resumeSkills, resumeText);
+            if (score >= 0.8) {
+                matchingSkills.push(req);
+                totalMatchScore += score;
+            } else if (score >= 0.5) {
+                partialMatches.push(req);
+                totalMatchScore += score;
+            } else {
+                missingSkills.push(req);
+                totalMatchScore += score;
+            }
+        }
 
-    // Add bonus for extremely high similarity (near identical text)
-    const bonus = similarity > 0.85 ? (1 - similarity) * 15 : 0;
-    const adjustedScore = Math.min(100, Math.round(finalScore + bonus));
+        skillScoreRaw = (totalMatchScore / allRequirements.length) * 100;
+    } else {
+        // No requirements specified — give partial credit
+        skillScoreRaw = resumeSkills.length > 0 ? 50 : 20;
+    }
 
-    // Role Prediction
+    // ── EXPERIENCE (30%) ──
+    const candidateExp = (user?.profile?.experience > 0)
+        ? user.profile.experience
+        : (parsedData.experience > 0 ? parsedData.experience : extractExperienceYears(resumeText));
+    const requiredExp = jobData.experienceLevel || 0;
+    const experienceScoreRaw = scoreExperience(candidateExp, requiredExp);
+
+    // ── EDUCATION & CERTIFICATIONS (20%) ──
+    const profileCerts = user?.profile?.certifications || [];
+    const parsedCerts = parsedData.certifications || [];
+    const finalCertifications = [...new Set([...profileCerts, ...parsedCerts])];
+    const educationScoreRaw = scoreEducation(resumeText, finalCertifications, jdText);
+
+    // ── ADDITIONAL FACTORS (10%) ──
+    const additionalScoreRaw = scoreAdditionalFactors(resumeText, jdText, resumeSkillsData.soft);
+
+    // ── FINAL WEIGHTED SCORE ──
+    const weightedScore = Math.round(
+        (skillScoreRaw * 0.40) +
+        (experienceScoreRaw * 0.30) +
+        (educationScoreRaw * 0.20) +
+        (additionalScoreRaw * 0.10)
+    );
+    const finalScore = Math.max(5, Math.min(100, weightedScore)); // Never show 0%, floor at 5%
+
+    // ── SCORE BREAKDOWN ──
+    const scoreBreakdown = {
+        skills: Math.round(skillScoreRaw * 0.40),
+        experience: Math.round(experienceScoreRaw * 0.30),
+        education: Math.round(educationScoreRaw * 0.20),
+        additional: Math.round(additionalScoreRaw * 0.10)
+    };
+
+    // ── ROLE PREDICTION ──
     const predictedRole = predictRole(resumeSkills);
 
-    // Fallback logic for Experience and Education
-    // PRIORITIZE Profile (Manual/Cached) > Parsed (Live Cloudinary)
+    // ── EXPERIENCE & EDUCATION DISPLAY TEXT ──
     const finalExperience = (user?.profile?.experience > 0)
         ? `${user.profile.experience}+ Years`
-        : (parsedData.experience > 0 ? `${parsedData.experience}+ Years` : "Not Specified");
+        : (candidateExp > 0 ? `${candidateExp}+ Years` : "Not Specified");
 
     const finalEducation = (user?.profile?.education && user.profile.education !== "Not Specified")
         ? user.profile.education
         : (parsedData.education || "Not Specified");
 
-    // Merge certifications from both sources
-    const profileCerts = user?.profile?.certifications || [];
-    const parsedCerts = parsedData.certifications || [];
-    const finalCertifications = [...new Set([...profileCerts, ...parsedCerts])];
-
-    // Strength Areas — categorized
-    const matchingTechnical = matchingSkills.filter(s => SKILL_TAXONOMY.technical.includes(s));
-    const matchingSoft = matchingSkills.filter(s => SKILL_TAXONOMY.soft.includes(s));
-
-    // Certification matching (if any)
-    const matchingCerts = finalCertifications.filter(cert =>
-        jdText.toLowerCase().includes(cert.toLowerCase())
-    );
+    // ── STRENGTH AREAS ──
+    const matchingTechnical = matchingSkills.filter(s => ALL_TECHNICAL_SKILLS.includes(s));
+    const matchingSoft = matchingSkills.filter(s => SOFT_SKILLS.map(ss => ss.toLowerCase()).includes(s));
 
     const strengthAreas = [];
-    if (matchingCerts.length > 0) {
-        strengthAreas.push(`Verified credentials matched: ${matchingCerts.slice(0, 2).join(', ')}.`);
-    }
     if (matchingTechnical.length > 0) {
-        strengthAreas.push(`Strong technical foundation in ${matchingTechnical.slice(0, 3).join(', ')}.`);
+        strengthAreas.push(`Strong technical foundation in ${matchingTechnical.slice(0, 4).join(', ')}.`);
     }
     if (matchingSoft.length > 0) {
         strengthAreas.push(`Demonstrated ${matchingSoft.slice(0, 2).join(' and ')} capabilities.`);
+    }
+    if (candidateExp >= requiredExp && requiredExp > 0) {
+        strengthAreas.push(`Experience level meets or exceeds requirements (${candidateExp}+ years).`);
+    }
+    if (finalCertifications.length > 0) {
+        const certDisplay = finalCertifications.slice(0, 2).join(', ');
+        strengthAreas.push(`Relevant credentials: ${certDisplay}.`);
     }
     if (finalScore >= 70) {
         strengthAreas.push("Overall profile is well-aligned with role requirements.");
@@ -197,7 +560,7 @@ export const generateMatchInsights = (resumeText, jobData, parsedData = {}, user
         strengthAreas.push("Upload a more detailed resume to unlock strength analysis.");
     }
 
-    // Gap Insights
+    // ── GAP INSIGHTS ──
     let gapInsights = "";
     if (missingSkills.length === 0) {
         gapInsights = "Your profile strongly aligns with the technical requirements. No significant skill gaps detected.";
@@ -207,7 +570,7 @@ export const generateMatchInsights = (resumeText, jobData, parsedData = {}, user
         gapInsights = `Key gaps identified in ${missingSkills.slice(0, 3).join(', ')}. Consider targeted learning or project experience in these areas.`;
     }
 
-    // Improvement Tips
+    // ── IMPROVEMENT TIPS ──
     const tips = [];
     if (matchingSkills.length > 0) {
         tips.push(`Highlight your experience with ${matchingSkills[0]} more prominently in your resume.`);
@@ -220,14 +583,19 @@ export const generateMatchInsights = (resumeText, jobData, parsedData = {}, user
         tips.push(`Add ${missingSkills[1]} to your skill set through hands-on practice or certifications.`);
     }
     tips.push("Tailor your resume keywords to closely mirror the job description language.");
-    if (finalScore < 50) {
-        tips.push("Consider gaining more practical experience through internships or open-source contributions.");
+    if (candidateExp < requiredExp) {
+        tips.push(`The role expects ${requiredExp}+ years of experience. Consider gaining more through internships or open-source contributions.`);
+    }
+    if (scoreBreakdown.education < 10) {
+        tips.push("Add relevant certifications to boost your education score (AWS, PMP, Google Cloud, etc.).");
     }
 
     return {
-        score: adjustedScore,
+        score: finalScore,
+        scoreBreakdown,
         matchingSkills,
         missingSkills,
+        partialMatches,
         strengthAreas,
         gapInsights,
         improvementTips: tips,
@@ -236,4 +604,33 @@ export const generateMatchInsights = (resumeText, jobData, parsedData = {}, user
         education: finalEducation,
         certifications: finalCertifications
     };
+};
+
+// ─────────────────────────────────────────────
+// 10. LEGACY EXPORTS (backward compatibility)
+// ─────────────────────────────────────────────
+
+export const calculateSimilarity = (text1, text2) => {
+    const words1 = preprocessText(text1).split(' ').filter(w => w.length > 2);
+    const words2 = preprocessText(text2).split(' ').filter(w => w.length > 2);
+
+    if (words1.length === 0 || words2.length === 0) return 0;
+
+    const set1 = new Set(words1);
+    const set2 = new Set(words2);
+
+    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const overlap = intersection.size / Math.min(set1.size, set2.size);
+
+    const uniqueWords = [...new Set([...words1, ...words2])];
+    const vector1 = uniqueWords.map(word => words1.filter(w => w === word).length);
+    const vector2 = uniqueWords.map(word => words2.filter(w => w === word).length);
+
+    const dotProduct = vector1.reduce((acc, current, i) => acc + current * vector2[i], 0);
+    const magnitude1 = Math.sqrt(vector1.reduce((acc, current) => acc + current * current, 0));
+    const magnitude2 = Math.sqrt(vector2.reduce((acc, current) => acc + current * current, 0));
+
+    const cosine = (magnitude1 && magnitude2) ? dotProduct / (magnitude1 * magnitude2) : 0;
+
+    return (cosine * 0.5) + (overlap * 0.5);
 };

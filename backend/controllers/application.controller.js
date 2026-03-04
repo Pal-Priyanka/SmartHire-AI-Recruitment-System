@@ -68,14 +68,9 @@ export const applyJob = async (req, res) => {
             job: jobId,
             applicant: userId,
             aiScore: insights.score,
-            scoreBreakdown: {
-                skills: (insights.matchingSkills.length / (job.requirements.length || 1)) * 50, // Approximation for legacy breakdown
-                experience: 20,
-                education: 15,
-                profile: 15
-            },
+            scoreBreakdown: insights.scoreBreakdown,
             resumeText: resumeText,
-            // New detailed insights
+            // Detailed insights from the NLP engine
             matchingSkills: insights.matchingSkills,
             missingSkills: insights.missingSkills,
             strengthAreas: insights.strengthAreas,
