@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Label } from './ui/label'
+import { Button } from './ui/button'
 import { useDispatch } from 'react-redux'
 import { setSearchedQuery } from '@/redux/jobSlice'
+import { Bookmark } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const fitlerData = [
     {
@@ -29,30 +32,48 @@ const FilterCard = () => {
         dispatch(setSearchedQuery(selectedValue));
     }, [selectedValue]);
     return (
-        <div className='w-full bg-white p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50'>
-            <div className='flex items-center justify-between mb-8'>
-                <h1 className='font-black text-2xl text-slate-900 tracking-tight'>Filters</h1>
-                <span className='text-xs text-indigo-600 font-black uppercase tracking-widest cursor-pointer hover:text-indigo-800 transition-colors' onClick={() => setSelectedValue('')}>Reset All</span>
+        <div className='w-full bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.04)]'>
+            <div className='mb-8'>
+                <Link to="/saved-jobs">
+                    <Button
+                        variant="secondary"
+                        className="w-full h-14 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 border border-slate-100 flex items-center justify-center gap-3 transition-all group/saved"
+                    >
+                        <Bookmark className="h-5 w-5 group-hover/saved:fill-indigo-600 transition-all" />
+                        <span className="font-black uppercase tracking-widest text-[10px]">Access Saved Jobs</span>
+                    </Button>
+                </Link>
             </div>
-            <div className='space-y-8'>
+            <div className='flex items-center justify-between mb-10'>
+                <h1 className='font-black text-2xl text-slate-900 tracking-tighter'>Filters</h1>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className='text-[10px] font-black uppercase tracking-[0.15em] text-indigo-600 hover:text-indigo-700 hover:bg-slate-50 px-3 h-8 rounded-xl'
+                    onClick={() => setSelectedValue('')}
+                >
+                    Reset All
+                </Button>
+            </div>
+            <div className='space-y-10'>
                 {
                     fitlerData.map((data, index) => (
-                        <div key={index} className='border-t border-slate-50 pt-6'>
-                            <h1 className='font-black text-[10px] text-slate-400 uppercase tracking-[0.2em] mb-4'>{data.fitlerType}</h1>
-                            <RadioGroup value={selectedValue} onValueChange={changeHandler}>
+                        <div key={index} className='group'>
+                            <h2 className='font-black text-[10px] text-slate-400 uppercase tracking-[0.25em] mb-6 group-hover:text-indigo-500 transition-colors'>{data.fitlerType}</h2>
+                            <RadioGroup value={selectedValue} onValueChange={changeHandler} className="gap-4">
                                 {
                                     data.array.map((item, idx) => {
                                         const itemId = `id${index}-${idx}`
                                         return (
-                                            <div key={itemId} className='flex items-center space-x-3 my-3 group cursor-pointer'>
+                                            <div key={itemId} className='flex items-center space-x-3 group/item cursor-pointer'>
                                                 <RadioGroupItem
                                                     value={item}
                                                     id={itemId}
-                                                    className="border-slate-300 text-indigo-600 focus:ring-indigo-600 bg-white"
+                                                    className="w-5 h-5 border-2 border-slate-200 text-indigo-600 focus:ring-0 focus:ring-offset-0 bg-white transition-all data-[state=checked]:border-indigo-600"
                                                 />
                                                 <Label
                                                     htmlFor={itemId}
-                                                    className="text-slate-600 text-sm font-bold cursor-pointer group-hover:text-slate-900 transition-colors"
+                                                    className="text-slate-600 text-sm font-bold cursor-pointer group-hover/item:text-slate-900 transition-colors uppercase tracking-tight"
                                                 >
                                                     {item}
                                                 </Label>

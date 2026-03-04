@@ -13,7 +13,7 @@ const applicationSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['applied', 'screening', 'screened', 'interview scheduled', 'interviewed', 'offer extended', 'offer accepted', 'rejected'],
+        enum: ['applied', 'accepted', 'rejected', 'screening', 'screened', 'interview scheduled', 'interviewed', 'offer extended', 'offer accepted'],
         default: 'applied'
     },
     statusHistory: [
@@ -31,6 +31,19 @@ const applicationSchema = new mongoose.Schema({
         experience: { type: Number, default: 0 },
         education: { type: Number, default: 0 },
         profile: { type: Number, default: 0 }
-    }
+    },
+    resumeText: {
+        type: String
+    },
+    // New fields for AI Insights
+    matchingSkills: [String],
+    missingSkills: [String],
+    strengthAreas: [String],
+    gapInsights: String,
+    improvementTips: [String],
+    predictedRole: String,
+    experience: String,
+    education: String,
+    certifications: [String]
 }, { timestamps: true });
 export const Application = mongoose.model("Application", applicationSchema);

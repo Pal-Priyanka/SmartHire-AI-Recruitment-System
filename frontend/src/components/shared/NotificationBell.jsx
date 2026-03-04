@@ -9,7 +9,6 @@ import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import { toast } from 'sonner';
 import { Input } from '../ui/input';
-import axios from 'axios';
 
 const NotificationBell = () => {
     const [notifications, setNotifications] = useState([]);
@@ -49,9 +48,22 @@ const NotificationBell = () => {
         }
     };
 
+    const handleMarkAllRead = async () => {
+        try {
+            const res = await api.put(`${NOTIFICATION_API_END_POINT}/read-all`);
+            if (res.data.success) {
+                setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+                toast.success("All notifications marked as read");
+            }
+        } catch (error) {
+            console.error("Error marking all notifications as read:", error);
+            toast.error("Failed to mark all as read");
+        }
+    };
+
     const handleDeleteJob = async (jobId, notificationId) => {
         try {
-            const res = await axios.delete(`${JOB_API_END_POINT}/delete/${jobId}`, { withCredentials: true });
+            const res = await api.delete(`${JOB_API_END_POINT}/delete/${jobId}`);
             if (res.data.success) {
                 toast.success(res.data.message);
                 markAsRead(notificationId);
@@ -71,7 +83,7 @@ const NotificationBell = () => {
         try {
             console.log("Sustaining job:", jobId, "with new deadline:", newDeadline);
             const isoDeadline = new Date(newDeadline).toISOString();
-            const res = await axios.put(`${JOB_API_END_POINT}/update/${jobId}`, { applyBy: isoDeadline }, { withCredentials: true });
+            const res = await api.put(`${JOB_API_END_POINT}/update/${jobId}`, { applyBy: isoDeadline });
             console.log("Sustain response:", res.data);
             if (res.data.success) {
                 toast.success("Job deadline updated successfully!");
@@ -102,8 +114,20 @@ const NotificationBell = () => {
             </PopoverTrigger>
             <PopoverContent className="w-96 bg-white border-slate-100 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-3xl">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-black text-xl text-slate-900 tracking-tight">Notifications</h3>
-                    {unreadCount > 0 && <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md">{unreadCount} new</span>}
+                    <div>
+                        <h3 className="font-black text-xl text-slate-900 tracking-tight">Notifications</h3>
+                        {unreadCount > 0 && <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md mt-1 inline-block">{unreadCount} new</span>}
+                    </div>
+                    {unreadCount > 0 && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 px-2 h-7 rounded-lg transition-all"
+                            onClick={handleMarkAllRead}
+                        >
+                            Mark all read
+                        </Button>
+                    )}
                 </div>
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {notifications.length === 0 ? (

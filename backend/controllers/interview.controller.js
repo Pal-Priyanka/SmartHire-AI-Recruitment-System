@@ -1,6 +1,9 @@
 import { Interview } from "../models/interview.model.js";
 import { Application } from "../models/application.model.js";
 import { createNotification } from "./notification.controller.js";
+import { sendInterviewInvite } from "../services/emailService.js";
+import { User } from "../models/user.model.js";
+import { Job } from "../models/job.model.js";
 
 export const scheduleInterview = async (req, res) => {
     try {
@@ -57,11 +60,30 @@ export const scheduleInterview = async (req, res) => {
         // Create notification for candidate
         await createNotification(
             candidateId,
-            'interview',
+            'interview_scheduled',
             'Interview Scheduled!',
             `You have a new ${type} interview scheduled for ${scheduledDate} at ${scheduledTime}.`,
             `/profile`
         );
+
+        // --- Send Email Notification (Task 2.3) ---
+        try {
+            const candidate = await User.findById(candidateId);
+            const job = await Job.findById(jobId).populate('company');
+            if (candidate && job) {
+                await sendInterviewInvite(
+                    candidate.email,
+                    candidate.fullname,
+                    job.title,
+                    job.company?.name || "SmartHire Partner",
+                    scheduledDate,
+                    scheduledTime,
+                    meetLink || "Meeting link not provided"
+                );
+            }
+        } catch (emailError) {
+            console.error("Failed to send interview invitation email:", emailError);
+        }
 
         return res.status(201).json({ message: "Interview scheduled successfully", interview, success: true });
     } catch (error) {

@@ -5,7 +5,7 @@ import { Input } from '../ui/input'
 import { RadioGroup } from '../ui/radio-group'
 import { Button } from '../ui/button'
 import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '@/lib/api'
 import { AUTH_API_END_POINT } from '@/utils/constant'
 import { toast } from 'sonner'
 import { useDispatch, useSelector } from 'react-redux'
@@ -46,9 +46,8 @@ const Signup = () => {
 
         try {
             dispatch(setLoading(true));
-            const res = await axios.post(`${AUTH_API_END_POINT}/register`, formData, {
+            const res = await api.post(`${AUTH_API_END_POINT}/register`, formData, {
                 headers: { 'Content-Type': "multipart/form-data" },
-                withCredentials: true,
             });
             if (res.data.success) {
                 navigate("/login");
@@ -56,7 +55,7 @@ const Signup = () => {
             }
         } catch (error) {
             console.log(error);
-            toast.error(error.response.data.message);
+            toast.error(error?.response?.data?.message || "Something went wrong");
         } finally {
             dispatch(setLoading(false));
         }

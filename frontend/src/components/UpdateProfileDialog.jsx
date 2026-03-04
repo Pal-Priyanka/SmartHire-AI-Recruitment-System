@@ -5,7 +5,7 @@ import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { Loader2 } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
-import axios from 'axios'
+import api from '@/lib/api'
 import { USER_API_END_POINT } from '@/utils/constant'
 import { setUser } from '@/redux/authSlice'
 import { toast } from 'sonner'
@@ -20,6 +20,9 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
         phoneNumber: user?.phoneNumber || "",
         bio: user?.profile?.bio || "",
         skills: user?.profile?.skills?.map(skill => skill) || "",
+        experience: user?.profile?.experience || 0,
+        education: user?.profile?.education || "",
+        certifications: user?.profile?.certifications?.join(", ") || "",
         file: user?.profile?.resume || ""
     });
     const dispatch = useDispatch();
@@ -41,16 +44,18 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
         formData.append("phoneNumber", input.phoneNumber);
         formData.append("bio", input.bio);
         formData.append("skills", input.skills);
+        formData.append("experience", input.experience);
+        formData.append("education", input.education);
+        formData.append("certifications", input.certifications);
         if (input.file) {
             formData.append("file", input.file);
         }
         try {
             setLoading(true);
-            const res = await axios.post(`${USER_API_END_POINT}/profile/update`, formData, {
+            const res = await api.post(`${USER_API_END_POINT}/profile/update`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 },
-                withCredentials: true
             });
             if (res.data.success) {
                 dispatch(setUser(res.data.user));
@@ -58,8 +63,8 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
             }
         } catch (error) {
             console.log(error);
-            toast.error(error.response.data.message);
-        } finally{
+            toast.error(error?.response?.data?.message || "Something went wrong");
+        } finally {
             setLoading(false);
         }
         setOpen(false);
@@ -78,10 +83,10 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                     <form onSubmit={submitHandler}>
                         <div className='grid gap-4 py-4'>
                             <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="name" className="text-right">Name</Label>
+                                <Label htmlFor="fullname" className="text-right">Name</Label>
                                 <Input
-                                    id="name"
-                                    name="name"
+                                    id="fullname"
+                                    name="fullname"
                                     type="text"
                                     value={input.fullname}
                                     onChange={changeEventHandler}
@@ -100,10 +105,10 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                                 />
                             </div>
                             <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="number" className="text-right">Number</Label>
+                                <Label htmlFor="phoneNumber" className="text-right">Number</Label>
                                 <Input
-                                    id="number"
-                                    name="number"
+                                    id="phoneNumber"
+                                    name="phoneNumber"
                                     value={input.phoneNumber}
                                     onChange={changeEventHandler}
                                     className="col-span-3"
@@ -125,6 +130,37 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                                     id="skills"
                                     name="skills"
                                     value={input.skills}
+                                    onChange={changeEventHandler}
+                                    className="col-span-3"
+                                />
+                            </div>
+                            <div className='grid grid-cols-4 items-center gap-4'>
+                                <Label htmlFor="experience" className="text-right">Experience (Years)</Label>
+                                <Input
+                                    id="experience"
+                                    name="experience"
+                                    type="number"
+                                    value={input.experience}
+                                    onChange={changeEventHandler}
+                                    className="col-span-3"
+                                />
+                            </div>
+                            <div className='grid grid-cols-4 items-center gap-4'>
+                                <Label htmlFor="education" className="text-right">Education</Label>
+                                <Input
+                                    id="education"
+                                    name="education"
+                                    value={input.education}
+                                    onChange={changeEventHandler}
+                                    className="col-span-3"
+                                />
+                            </div>
+                            <div className='grid grid-cols-4 items-center gap-4'>
+                                <Label htmlFor="certifications" className="text-right">Certifications (comma separated)</Label>
+                                <Input
+                                    id="certifications"
+                                    name="certifications"
+                                    value={input.certifications}
                                     onChange={changeEventHandler}
                                     className="col-span-3"
                                 />

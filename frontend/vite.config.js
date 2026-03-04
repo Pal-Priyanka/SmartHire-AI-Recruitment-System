@@ -10,7 +10,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    strictPort: true, // Fail if port is in use so we can debug easily
+    strictPort: true,
+    host: "0.0.0.0",
   },
   resolve: {
     alias: {

@@ -1,4 +1,6 @@
 import axios from "axios";
+import store from "../redux/store";
+import { setUser } from "../redux/authSlice";
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
@@ -7,10 +9,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("token"); // Fallback if cookie not used or for mobile
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
+        // You can add headers here if needed, but withCredentials handles cookies
         return config;
     },
     (error) => Promise.reject(error)
@@ -20,8 +19,9 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            // Optional: Logout user or redirect to login
-            console.error("Session expired. Please login again.");
+            // Global Logout on Unauthorized
+            store.dispatch(setUser(null));
+            window.location.href = "/login";
         }
         return Promise.reject(error);
     }

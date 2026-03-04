@@ -12,15 +12,15 @@ const Jobs = () => {
     const [filterJobs, setFilterJobs] = useState(allJobs);
 
     useEffect(() => {
-        if (searchedQuery) {
+        if (searchedQuery && allJobs) {
             const filteredJobs = allJobs.filter((job) => {
-                return job.title.toLowerCase().includes(searchedQuery.toLowerCase()) ||
-                    job.description.toLowerCase().includes(searchedQuery.toLowerCase()) ||
-                    job.location.toLowerCase().includes(searchedQuery.toLowerCase())
+                return (job?.title?.toLowerCase().includes(searchedQuery.toLowerCase()) ||
+                    job?.description?.toLowerCase().includes(searchedQuery.toLowerCase()) ||
+                    job?.location?.toLowerCase().includes(searchedQuery.toLowerCase()))
             })
             setFilterJobs(filteredJobs)
         } else {
-            setFilterJobs(allJobs)
+            setFilterJobs(allJobs || [])
         }
     }, [allJobs, searchedQuery]);
 
@@ -40,7 +40,7 @@ const Jobs = () => {
                             </div>
                         ) : (
                             <div className='flex-1 h-[88vh] overflow-y-auto pb-5 custom-scrollbar'>
-                                <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6'>
+                                <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8'>
                                     {
                                         filterJobs.map((job) => (
                                             <motion.div

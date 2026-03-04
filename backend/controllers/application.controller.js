@@ -2,6 +2,12 @@ import { Application } from "../models/application.model.js";
 import { Job } from "../models/job.model.js";
 import { User } from "../models/user.model.js";
 import { createNotification } from "./notification.controller.js";
+import { extractRawText, parseResume } from "../services/resumeParser.js";
+import { generateMatchInsights } from "../services/nlp.service.js";
+import { sendStatusUpdate } from "../services/emailService.js";
+import { Interview } from "../models/interview.model.js";
+import path from "path";
+import fs from "fs";
 
 export const applyJob = async (req, res) => {
     try {
@@ -34,46 +40,63 @@ export const applyJob = async (req, res) => {
         // Fetch user for skills comparison
         const user = await User.findById(userId);
 
-        // Calculate AI Score (Mock logic for SmartHire experience)
-        // Match user skills with job requirements
-        const userSkills = user?.profile?.skills || [];
-        const jobRequirements = job?.requirements || [];
-
-        let matchCount = 0;
-        if (jobRequirements.length > 0) {
-            jobRequirements.forEach(req => {
-                if (userSkills.some(skill => skill.toLowerCase().includes(req.toLowerCase()))) {
-                    matchCount++;
-                }
-            });
+        // --- Resume Parsing & AI Scoring (Unified logic) ---
+        let resumeText = "";
+        let parsedData = {};
+        if (user?.profile?.resume) {
+            try {
+                resumeText = await extractRawText(user.profile.resume);
+                parsedData = await parseResume(user.profile.resume) || {};
+            } catch (parseError) {
+                console.error("Error during resume parsing in application:", parseError);
+            }
         }
 
-        const skillMatchPercentage = jobRequirements.length > 0 ? (matchCount / jobRequirements.length) * 100 : 50;
-        const randomBonus = Math.floor(Math.random() * 20); // Add some variability
-        const finalScore = Math.min(100, Math.round(skillMatchPercentage + randomBonus));
+        const insights = generateMatchInsights(
+            resumeText,
+            {
+                title: job.title,
+                description: job.description,
+                requirements: job.requirements
+            },
+            parsedData,
+            user
+        );
 
         // create a new application
         const newApplication = await Application.create({
             job: jobId,
             applicant: userId,
-            aiScore: finalScore,
+            aiScore: insights.score,
             scoreBreakdown: {
-                skills: Math.round(skillMatchPercentage),
-                experience: Math.min(100, (user?.profile?.experience || 1) * 10),
-                education: 80,
-                profile: 90
-            }
+                skills: (insights.matchingSkills.length / (job.requirements.length || 1)) * 50, // Approximation for legacy breakdown
+                experience: 20,
+                education: 15,
+                profile: 15
+            },
+            resumeText: resumeText,
+            // New detailed insights
+            matchingSkills: insights.matchingSkills,
+            missingSkills: insights.missingSkills,
+            strengthAreas: insights.strengthAreas,
+            gapInsights: insights.gapInsights,
+            improvementTips: insights.improvementTips,
+            predictedRole: insights.predictedRole,
+            experience: insights.experience,
+            education: insights.education,
+            certifications: insights.certifications
         });
 
         job.applications.push(newApplication._id);
         await job.save();
 
         return res.status(201).json({
-            message: "Applied successfully. Your AI Score: " + finalScore + "%",
+            message: "Applied successfully. Your AI Score: " + insights.score + "%",
             success: true
         })
     } catch (error) {
         console.log(error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 export const getAppliedJobs = async (req, res) => {
@@ -99,6 +122,7 @@ export const getAppliedJobs = async (req, res) => {
         })
     } catch (error) {
         console.log(error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 // admin dekhega kitna user ne apply kiya hai
@@ -109,7 +133,8 @@ export const getApplicants = async (req, res) => {
             path: 'applications',
             options: { sort: { createdAt: -1 } },
             populate: {
-                path: 'applicant'
+                path: 'applicant',
+                select: 'fullname email phoneNumber profile' // Explicitly select profile
             }
         });
         if (!job) {
@@ -119,48 +144,28 @@ export const getApplicants = async (req, res) => {
             })
         };
 
-        const jobObj = job.toObject();
-
-        // Ensure all applications have an AI Score for the high-end demo experience
-        const enrichedApplications = jobObj.applications.map(app => {
-            if (!app.aiScore || app.aiScore === 0) {
-                // Dynamic fallback score based on skills vs requirements
-                const userSkills = app.applicant?.profile?.skills || [];
-                const jobRequirements = jobObj.requirements || [];
-
-                let matchCount = 0;
-                if (jobRequirements.length > 0) {
-                    jobRequirements.forEach(req => {
-                        if (userSkills.some(skill => skill.toLowerCase().includes(req.toLowerCase()))) {
-                            matchCount++;
-                        }
-                    });
-                }
-
-                const baseScore = jobRequirements.length > 0 ? (matchCount / jobRequirements.length) * 100 : 75;
-                app.aiScore = Math.min(98, Math.round(baseScore + (Math.random() * 15)));
-            }
-            return app;
-        });
-
         return res.status(200).json({
-            job: { ...jobObj, applications: enrichedApplications },
+            job,
             success: true
         });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
 export const getAllApplicants = async (req, res) => {
     try {
         const recruiterId = req.id;
-        const jobs = await Job.find({ createdBy: recruiterId });
+        const jobs = await Job.find({ created_by: recruiterId });
         const jobIds = jobs.map(j => j._id);
 
         const applications = await Application.find({ job: { $in: jobIds } })
             .sort({ createdAt: -1 })
-            .populate('applicant')
+            .populate({
+                path: 'applicant',
+                select: '-password'
+            })
             .populate('job');
 
         if (!applications) {
@@ -170,27 +175,8 @@ export const getAllApplicants = async (req, res) => {
             });
         }
 
-        const enrichedApplications = applications.map(app => {
-            const appObj = app.toObject();
-            if (!appObj.aiScore || appObj.aiScore === 0) {
-                const userSkills = appObj.applicant?.profile?.skills || [];
-                const jobRequirements = appObj.job?.requirements || [];
-                let matchCount = 0;
-                if (jobRequirements.length > 0) {
-                    jobRequirements.forEach(req => {
-                        if (userSkills.some(skill => skill.toLowerCase().includes(req.toLowerCase()))) {
-                            matchCount++;
-                        }
-                    });
-                }
-                const baseScore = jobRequirements.length > 0 ? (matchCount / jobRequirements.length) * 100 : 75;
-                appObj.aiScore = Math.min(98, Math.round(baseScore + (Math.random() * 15)));
-            }
-            return appObj;
-        });
-
         return res.status(200).json({
-            applications: enrichedApplications,
+            applications,
             success: true
         });
     } catch (error) {
@@ -219,17 +205,62 @@ export const updateStatus = async (req, res) => {
         };
 
         // update the status
-        application.status = status.toLowerCase();
+        const normalizedStatus = status.toLowerCase();
+        application.status = normalizedStatus;
+        if (!application.statusHistory) application.statusHistory = [];
+        application.statusHistory.push({ status: normalizedStatus, timestamp: new Date() });
+
         await application.save();
 
         // Notify the candidate
         await createNotification(
             application.applicant,
-            'application',
+            'application_status',
             'Application Status Updated',
             `Your application status for a job has been updated to ${status}.`,
-            '/profile'
+            `/profile`
         );
+
+        // --- Send Email Notification (Task 2.3) ---
+        try {
+            const enrichedApp = await Application.findById(applicationId).populate('applicant').populate('job');
+            if (enrichedApp?.applicant?.email) {
+                await sendStatusUpdate(
+                    enrichedApp.applicant.email,
+                    enrichedApp.applicant.fullname,
+                    enrichedApp.job?.title || "Applied Position",
+                    status
+                );
+            }
+
+            // --- Auto-Schedule Interview (New Task) ---
+            if (status.toLowerCase() === 'accepted') {
+                const existingInterview = await Interview.findOne({ application: applicationId });
+                if (!existingInterview) {
+                    // Schedule for 2 days from now at 10:00 AM
+                    const date = new Date();
+                    date.setDate(date.getDate() + 2);
+                    const dateStr = date.toISOString().split('T')[0];
+
+                    await Interview.create({
+                        application: applicationId,
+                        candidate: application.applicant,
+                        job: application.job,
+                        interviewer: enrichedApp.job.created_by,
+                        scheduledDate: dateStr,
+                        scheduledTime: "10:00 AM",
+                        type: 'Technical',
+                        format: 'Video',
+                        status: 'scheduled',
+                        notes: 'Auto-scheduled upon application acceptance.'
+                    });
+
+                    console.log(`Auto-scheduled interview for application ${applicationId}`);
+                }
+            }
+        } catch (error) {
+            console.error("Error in post-status update logic:", error);
+        }
 
         return res.status(200).json({
             message: "Status updated successfully.",
@@ -238,5 +269,37 @@ export const updateStatus = async (req, res) => {
 
     } catch (error) {
         console.log(error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
+
+export const withdrawApplication = async (req, res) => {
+    try {
+        const userId = req.id;
+        const jobId = req.params.id;
+
+        const application = await Application.findOne({ job: jobId, applicant: userId });
+        if (!application) {
+            return res.status(404).json({
+                message: "Application not found.",
+                success: false
+            });
+        }
+
+        // Remove application from Job's applications array
+        await Job.findByIdAndUpdate(jobId, {
+            $pull: { applications: application._id }
+        });
+
+        // Delete the application
+        await Application.findByIdAndDelete(application._id);
+
+        return res.status(200).json({
+            message: "Application withdrawn successfully.",
+            success: true
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+};

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import Navbar from './shared/Navbar'
 import Job from './Job';
-import { Badge } from './ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSearchedQuery } from '@/redux/jobSlice';
 import useGetAllJobs from '@/hooks/useGetAllJobs';

@@ -1,6 +1,7 @@
 import { Job } from "../models/job.model.js";
 import { Application } from "../models/application.model.js";
 import { Interview } from "../models/interview.model.js";
+import { calculateTimeToFillForecast } from "../services/predictiveAnalytics.js";
 
 export const getRecruiterAnalytics = async (req, res) => {
     try {
@@ -71,6 +72,21 @@ export const getCandidateAnalytics = async (req, res) => {
                 statusCounts,
                 avgScore
             },
+            success: true
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+};
+
+export const getForecastAnalytics = async (req, res) => {
+    try {
+        const userId = req.id;
+        const forecast = await calculateTimeToFillForecast(userId);
+        
+        return res.status(200).json({
+            forecast,
             success: true
         });
     } catch (error) {

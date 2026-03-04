@@ -1,8 +1,10 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
+import getDataUri from "../utils/datauri.js";
+import fs from "fs";
+import { parseResume } from "../services/resumeParser.js";
 
 export const register = async (req, res) => {
     try {
@@ -17,7 +19,9 @@ export const register = async (req, res) => {
         const file = req.file;
         let profilePhoto = "";
         if (file) {
-            profilePhoto = `http://localhost:5000/uploads/${file.filename}`;
+            const fileUri = getDataUri(file);
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+            profilePhoto = cloudResponse.secure_url;
         }
 
         const user = await User.findOne({ email });
@@ -102,6 +106,7 @@ export const login = async (req, res) => {
         })
     } catch (error) {
         console.log(error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 export const logout = async (req, res) => {
@@ -117,24 +122,13 @@ export const logout = async (req, res) => {
         })
     } catch (error) {
         console.log(error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 export const updateProfile = async (req, res) => {
     try {
-        const { fullname, email, phoneNumber, bio, skills } = req.body;
+        const { fullname, email, phoneNumber, bio, skills, experience, education, certifications } = req.body;
 
-        const file = req.file;
-        let resume = "";
-        let resumeOriginalName = "";
-        if (file) {
-            resume = `http://localhost:5000/uploads/${file.filename}`;
-            resumeOriginalName = file.originalname;
-        }
-
-        let skillsArray;
-        if (skills) {
-            skillsArray = skills.split(",");
-        }
         const userId = req.id; // middleware authentication
         let user = await User.findById(userId);
 
@@ -144,16 +138,66 @@ export const updateProfile = async (req, res) => {
                 success: false
             })
         }
+
+        const file = req.file;
+        let resume = "";
+        let resumeOriginalName = "";
+        let autoExtractedData = {};
+
+        if (file) {
+            const fileUri = getDataUri(file);
+
+            // IMPROVEMENT: Parse resume LOCALLY before uploading to Cloudinary
+            // This ensures we get the data even if Cloudinary access is restricted later
+            try {
+                // Since it's a Buffer, we can't pass the path directly to parseResume if it expects a path
+                // But our parseResume handles local paths. Let's send a temp path or update parseResume to handle buffers.
+                // Actually, let's just use the file object directly for a temp check or update parseResume.
+                const tempPath = `./uploads/temp_${userId}_${Date.now()}.pdf`;
+                fs.writeFileSync(tempPath, file.buffer);
+                autoExtractedData = await parseResume(tempPath) || {};
+                fs.unlinkSync(tempPath); // Clean up
+            } catch (err) {
+                console.error("Local parsing error:", err.message);
+            }
+
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+                access_mode: 'public',
+                resource_type: 'auto'
+            });
+            resume = cloudResponse.secure_url;
+            resumeOriginalName = file.originalname;
+        }
+
+        let skillsArray;
         // updating data
         if (fullname) user.fullname = fullname
         if (email) user.email = email
         if (phoneNumber) user.phoneNumber = phoneNumber
         if (bio) user.profile.bio = bio
         if (skills) user.profile.skills = skillsArray
+        if (experience !== undefined) user.profile.experience = Number(experience)
+        if (education) user.profile.education = education
+        if (certifications) {
+            user.profile.certifications = Array.isArray(certifications)
+                ? certifications
+                : certifications.split(",").map(c => c.trim());
+        }
 
         if (file) {
             user.profile.resume = resume // save the local url
             user.profile.resumeOriginalName = resumeOriginalName // Save the original file name
+
+            // Use auto-extracted data if manual data is missing
+            if ((experience === undefined || experience === "") && autoExtractedData.experience) {
+                user.profile.experience = autoExtractedData.experience;
+            }
+            if (!education && autoExtractedData.education && autoExtractedData.education !== "Not Specified") {
+                user.profile.education = autoExtractedData.education;
+            }
+            if ((!certifications || certifications.length === 0) && autoExtractedData.certifications?.length > 0) {
+                user.profile.certifications = autoExtractedData.certifications;
+            }
         }
 
         await user.save();
@@ -174,6 +218,7 @@ export const updateProfile = async (req, res) => {
         })
     } catch (error) {
         console.log(error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
@@ -185,6 +230,42 @@ export const getMe = async (req, res) => {
             return res.status(404).json({ message: "User not found", success: false });
         }
         return res.status(200).json({ user, success: true });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+};
+
+export const bookmarkJob = async (req, res) => {
+    try {
+        const jobId = req.params.id;
+        const userId = req.id;
+
+        let user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found", success: false });
+        }
+
+        if (!user.profile.bookmarks) {
+            user.profile.bookmarks = [];
+        }
+
+        const isBookmarked = user.profile.bookmarks.includes(jobId);
+        if (isBookmarked) {
+            // Remove from bookmarks
+            user.profile.bookmarks = user.profile.bookmarks.filter(id => id.toString() !== jobId);
+        } else {
+            // Add to bookmarks
+            user.profile.bookmarks.push(jobId);
+        }
+
+        await user.save();
+
+        return res.status(200).json({
+            message: isBookmarked ? "Job removed from bookmarks" : "Job bookmarked successfully",
+            bookmarks: user.profile.bookmarks,
+            success: true
+        });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal server error", success: false });

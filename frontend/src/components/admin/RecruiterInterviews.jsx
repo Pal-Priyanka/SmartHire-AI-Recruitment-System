@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../shared/Navbar';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Badge } from '../ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '../ui/button';
 import { Calendar, Clock, Video, FileText, User } from 'lucide-react';
 import api from '@/lib/api';
@@ -81,10 +81,10 @@ const RecruiterInterviews = () => {
                                                 <div className='h-8 w-8 rounded-full bg-indigo-50 flex items-center justify-center'>
                                                     <User className='h-4 w-4 text-indigo-600' />
                                                 </div>
-                                                <span className='font-bold text-slate-900'>{inv.candidateId?.fullname}</span>
+                                                <span className='font-bold text-slate-900'>{inv.candidate?.fullname || inv.candidateId?.fullname}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-slate-700 font-medium">{inv.jobId?.title}</TableCell>
+                                        <TableCell className="text-slate-700 font-medium">{inv.job?.title || inv.jobId?.title}</TableCell>
                                         <TableCell>
                                             <div className='flex flex-col'>
                                                 <span className='flex items-center gap-2 text-sm text-slate-900 font-bold'>
@@ -99,7 +99,7 @@ const RecruiterInterviews = () => {
                                         </TableCell>
                                         <TableCell>
                                             <Badge variant="outline" className="border-slate-200 text-slate-500 capitalize bg-slate-50 text-[10px] font-bold">
-                                                {inv.interviewType}
+                                                {inv.type || inv.interviewType}
                                             </Badge>
                                         </TableCell>
                                         <TableCell>

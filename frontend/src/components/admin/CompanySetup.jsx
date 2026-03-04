@@ -4,7 +4,7 @@ import { Button } from '../ui/button'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
-import axios from 'axios'
+import api from '@/lib/api'
 import { COMPANY_API_END_POINT } from '@/utils/constant'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -32,11 +32,10 @@ const CompanySetup = () => {
         e.preventDefault();
         try {
             setLoading(true);
-            const res = await axios.put(`${COMPANY_API_END_POINT}/update/${params.id}`, input, {
+            const res = await api.put(`${COMPANY_API_END_POINT}/update/${params.id}`, input, {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                withCredentials: true
             });
             if (res.data.success) {
                 toast.success(res.data.message);
@@ -44,7 +43,7 @@ const CompanySetup = () => {
             }
         } catch (error) {
             console.log(error);
-            toast.error(error.response.data.message);
+            toast.error(error?.response?.data?.message || "Something went wrong");
         } finally {
             setLoading(false);
         }

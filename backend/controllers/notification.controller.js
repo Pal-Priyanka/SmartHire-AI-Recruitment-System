@@ -25,6 +25,17 @@ export const markAsRead = async (req, res) => {
     }
 };
 
+export const markAllAsRead = async (req, res) => {
+    try {
+        const userId = req.id;
+        await Notification.updateMany({ recipient: userId, isRead: false }, { isRead: true });
+        return res.status(200).json({ message: "All notifications marked as read", success: true });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+};
+
 export const createNotification = async (recipient, type, title, message, link = "", data = {}) => {
     try {
         const notification = await Notification.create({ recipient, type, title, message, link, data });

@@ -16,27 +16,39 @@ const HeroSection = () => {
     }
 
     return (
-        <div className='text-center'>
-            <div className='flex flex-col gap-6 my-16'>
-                <span className='mx-auto px-6 py-2 rounded-full bg-slate-100 text-indigo-600 font-semibold text-sm border border-indigo-100 shadow-sm animate-pulse'>
+        <div className='text-center relative px-4'>
+            <div className='absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-indigo-50/50 rounded-full blur-[120px] -z-10 animate-pulse'></div>
+
+            <div className='flex flex-col gap-8 my-24 items-center'>
+                <span className='px-6 py-2 rounded-full glass border border-indigo-100 text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] shadow-sm animate-bounce'>
                     No. 1 AI-Powered Recruitment Platform
                 </span>
-                <h1 className='text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900'>
-                    Hire the Best <br /> with <span className='text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'>Smart Analytics</span>
+
+                <h1 className='text-6xl md:text-8xl font-black tracking-tighter text-slate-950 leading-[0.9] max-w-4xl'>
+                    Hire the Best <br /> with <span className='text-gradient'>Smart AI</span>
                 </h1>
-                <p className='text-slate-500 max-w-2xl mx-auto text-lg'>
-                    Revolutionize your hiring process with AI-driven screening, automated scheduling, and real-time candidate deep-dives.
+
+                <p className='text-slate-500 max-w-2xl mx-auto text-lg md:text-xl font-medium leading-relaxed opacity-80'>
+                    Revolutionize your hiring process with AI-driven screening, automated scheduling, and real-time candidate insights.
                 </p>
-                <div className='flex w-[90%] md:w-[50%] bg-white border border-slate-200 p-1 rounded-full items-center gap-4 mx-auto focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all shadow-lg'>
-                    <input
-                        type="text"
-                        placeholder='Search for roles, skills, or companies...'
-                        onChange={(e) => setQuery(e.target.value)}
-                        className='bg-transparent outline-none border-none w-full px-5 text-slate-900 placeholder-slate-400'
-                    />
-                    <Button onClick={searchJobHandler} className="rounded-full bg-indigo-600 hover:bg-indigo-700 h-12 w-12 p-0 flex items-center justify-center transition-transform hover:scale-105 shadow-md shadow-indigo-200">
-                        <Search className='h-5 w-5 text-white' />
+
+                <div className='flex w-full max-w-3xl bg-white/80 backdrop-blur-3xl border border-slate-200 p-2 rounded-[2rem] items-center gap-4 transition-all hover:shadow-[0_30px_60px_-15px_rgba(99,102,241,0.2)] hover:border-indigo-100 focus-within:ring-4 focus-within:ring-indigo-500/10 shadow-2xl'>
+                    <div className='flex-1 flex items-center gap-3 px-4'>
+                        <Search className='h-5 w-5 text-slate-400' />
+                        <input
+                            type="text"
+                            placeholder='Search for roles, skills, or companies...'
+                            onChange={(e) => setQuery(e.target.value)}
+                            className='bg-transparent outline-none border-none w-full py-4 text-slate-900 placeholder-slate-400 font-semibold'
+                        />
+                    </div>
+                    <Button onClick={searchJobHandler} className="rounded-2xl bg-indigo-600 hover:bg-indigo-700 h-14 px-8 flex items-center justify-center transition-all hover:scale-[1.02] shadow-xl shadow-indigo-200 text-white font-black uppercase tracking-widest text-xs">
+                        Find Jobs
                     </Button>
+                </div>
+
+                <div className='flex items-center gap-8 mt-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-500'>
+                    <span className='text-xs font-black uppercase tracking-widest'>Trusted by 500+ Scaleups</span>
                 </div>
             </div>
         </div>

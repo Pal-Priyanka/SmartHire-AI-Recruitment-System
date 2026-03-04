@@ -5,7 +5,7 @@ import { Input } from '../ui/input'
 import { Button } from '../ui/button'
 import { useSelector, useDispatch } from 'react-redux'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
-import axios from 'axios'
+import api from '@/lib/api'
 import { JOB_API_END_POINT } from '@/utils/constant'
 import { toast } from 'sonner'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -47,11 +47,10 @@ const JobSetup = () => {
                 ...input,
                 applyBy: input.applyBy ? new Date(input.applyBy).toISOString() : null
             };
-            const res = await axios.put(`${JOB_API_END_POINT}/update/${jobId}`, jobData, {
+            const res = await api.put(`${JOB_API_END_POINT}/update/${jobId}`, jobData, {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                withCredentials: true
             });
             if (res.data.success) {
                 toast.success(res.data.message);
@@ -67,7 +66,7 @@ const JobSetup = () => {
     useEffect(() => {
         const fetchJobDetails = async () => {
             try {
-                const res = await axios.get(`${JOB_API_END_POINT}/get/${jobId}`, { withCredentials: true });
+                const res = await api.get(`${JOB_API_END_POINT}/get/${jobId}`);
                 if (res.data.success) {
                     const job = res.data.job;
                     setInput({

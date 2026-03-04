@@ -42,3 +42,14 @@ export const sendInterviewInvite = async (candidateEmail, candidateName, jobTitl
     `;
     await sendEmail({ to: candidateEmail, subject, html });
 };
+
+export const sendStatusUpdate = async (candidateEmail, candidateName, jobTitle, status) => {
+    const subject = `Application Status Update: ${jobTitle}`;
+    const html = `
+        <h1>Hello ${candidateName},</h1>
+        <p>The status of your application for <strong>${jobTitle}</strong> has been updated to: <strong>${status}</strong>.</p>
+        <p>Please log in to the SmartHire portal for more details.</p>
+        <p>SmartHire Team</p>
+    `;
+    await sendEmail({ to: candidateEmail, subject, html });
+};

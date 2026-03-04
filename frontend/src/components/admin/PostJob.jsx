@@ -5,7 +5,7 @@ import { Input } from '../ui/input'
 import { Button } from '../ui/button'
 import { useSelector } from 'react-redux'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
-import axios from 'axios'
+import api from '@/lib/api'
 import { JOB_API_END_POINT } from '@/utils/constant'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
@@ -47,18 +47,17 @@ const PostJob = () => {
                 ...input,
                 applyBy: input.applyBy ? new Date(input.applyBy).toISOString() : null
             };
-            const res = await axios.post(`${JOB_API_END_POINT}/post`, jobData, {
+            const res = await api.post(`${JOB_API_END_POINT}/post`, jobData, {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                withCredentials: true
             });
             if (res.data.success) {
                 toast.success(res.data.message);
                 navigate("/admin/jobs");
             }
         } catch (error) {
-            toast.error(error.response.data.message);
+            toast.error(error?.response?.data?.message || "Something went wrong");
         } finally {
             setLoading(false);
         }

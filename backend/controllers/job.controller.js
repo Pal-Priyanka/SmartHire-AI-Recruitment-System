@@ -1,6 +1,15 @@
 import { Job } from "../models/job.model.js";
+import { User } from "../models/user.model.js";
 import { createNotification } from "./notification.controller.js";
 import { Notification } from "../models/notification.model.js";
+import { generateMatchInsights } from "../services/nlp.service.js";
+import { extractRawText, parseResume } from "../services/resumeParser.js";
+import path from "path";
+import { fileURLToPath } from 'url';
+import fs from "fs";
+
+const __filename_controller = fileURLToPath(import.meta.url);
+const __dirname_controller = path.dirname(__filename_controller);
 
 // admin post krega job
 export const postJob = async (req, res) => {
@@ -113,8 +122,75 @@ export const getAdminJobs = async (req, res) => {
         })
     } catch (error) {
         console.log(error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
+
+export const getJobMatch = async (req, res) => {
+    try {
+        const jobId = req.params.id;
+        const userId = req.id;
+
+        const job = await Job.findById(jobId);
+        if (!job) {
+            return res.status(404).json({
+                message: "Job not found.",
+                success: false
+            });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found.",
+                success: false
+            });
+        }
+
+        // Strict Resume Dependency: Analysis requires a resume file
+        if (!user.profile.resume) {
+            return res.status(400).json({
+                message: "Analysis requires a resume. Please upload your resume first.",
+                success: false
+            });
+        }
+
+        let resumeText = "";
+        let parsedData = {};
+
+        try {
+            // Use the robust extractRawText which handles both URLs and local paths
+            resumeText = await extractRawText(user.profile.resume);
+            // Also attempt to get structured data (Education, Experience) for the breakdown
+            parsedData = await parseResume(user.profile.resume) || {};
+        } catch (parseError) {
+            console.error("Resume parsing error in getJobMatch:", parseError.message);
+        }
+
+        // Fallback: if parsing fails or returns empty, use basic profile info
+        if (!resumeText || resumeText.trim().length === 0) {
+            const fallbackParts = [];
+            if (user.profile.resumeOriginalName) fallbackParts.push(user.profile.resumeOriginalName);
+            if (user.profile.skills && user.profile.skills.length > 0) {
+                fallbackParts.push(user.profile.skills.join(' '));
+            }
+            if (user.profile.bio) fallbackParts.push(user.profile.bio);
+            resumeText = fallbackParts.join(' ');
+        }
+
+        // Combine semantic match insights + structured breakdown
+        const insights = generateMatchInsights(resumeText, job, parsedData, user);
+
+        return res.status(200).json({
+            insights,
+            success: true
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+};
+
 export const updateJob = async (req, res) => {
     try {
         const { title, description, requirements, salary, location, jobType, experience, position, applyBy } = req.body;

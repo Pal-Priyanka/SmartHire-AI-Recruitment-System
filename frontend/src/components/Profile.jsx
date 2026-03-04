@@ -3,7 +3,7 @@ import Navbar from './shared/Navbar'
 import { Avatar, AvatarImage } from './ui/avatar'
 import { Button } from './ui/button'
 import { Contact, Mail, Pen } from 'lucide-react'
-import { Badge } from './ui/badge'
+import { Badge } from '@/components/ui/badge'
 import { Label } from './ui/label'
 import AppliedJobTable from './AppliedJobTable'
 import UpdateProfileDialog from './UpdateProfileDialog'
@@ -20,75 +20,138 @@ const Profile = () => {
     const { allAppliedJobs } = useSelector(store => store.job); // Extracting this correctly
 
     return (
-        <div className='min-h-screen bg-slate-50 pb-10 text-slate-900'>
+        <div className='min-h-screen bg-slate-50 pb-20 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900'>
             <Navbar />
-            <div className='max-w-4xl mx-auto bg-white border border-slate-200 rounded-2xl my-8 p-10 shadow-lg'>
-                <div className='flex justify-between items-start'>
-                    <div className='flex items-center gap-6'>
-                        <Avatar className="h-24 w-24 border-2 border-indigo-100 ring-2 ring-indigo-50">
-                            <AvatarImage src={user?.profile?.profilePhoto || "https://www.shutterstock.com/image-vector/circle-line-simple-design-logo-600nw-2174926871.jpg"} alt="profile" />
-                        </Avatar>
-                        <div>
-                            <h1 className='font-bold text-3xl text-slate-900'>{user?.fullname}</h1>
-                            <p className='text-slate-500 mt-2 text-lg leading-relaxed'>{user?.profile?.bio || "No bio added yet."}</p>
+            <div className='max-w-4xl mx-auto my-12 px-4'>
+                <div className='bg-white rounded-[3rem] border border-slate-100 p-12 premium-shadow relative overflow-hidden group'>
+                    {/* Decorative element */}
+                    <div className='absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-3xl -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-110'></div>
+
+                    <div className='relative z-10'>
+                        <div className='flex flex-col md:flex-row justify-between items-start gap-8'>
+                            <div className='flex flex-col md:flex-row items-center md:items-start gap-8'>
+                                <div className='relative'>
+                                    <Avatar className="h-32 w-32 border-4 border-white shadow-2xl ring-1 ring-slate-100">
+                                        <AvatarImage src={user?.profile?.profilePhoto || "https://www.shutterstock.com/image-vector/circle-line-simple-design-logo-600nw-2174926871.jpg"} alt="profile" />
+                                    </Avatar>
+                                    <Button
+                                        onClick={() => setOpen(true)}
+                                        className="absolute -bottom-2 -right-2 bg-indigo-600 hover:bg-indigo-700 text-white border-4 border-white rounded-2xl p-0 h-10 w-10 flex items-center justify-center shadow-xl transition-all hover:scale-110"
+                                    >
+                                        <Pen className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                <div className='text-center md:text-left pt-2'>
+                                    <h1 className='font-black text-4xl text-slate-900 tracking-tighter uppercase'>{user?.fullname}</h1>
+                                    <p className='text-slate-500 mt-3 text-lg font-medium leading-relaxed max-w-lg'>{user?.profile?.bio || "No professional bio added yet."}</p>
+
+                                    <div className='flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6'>
+                                        <div className='flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100'>
+                                            <Mail className='h-4 w-4 text-indigo-500' />
+                                            <span className='font-black text-[10px] uppercase tracking-widest text-slate-600'>{user?.email}</span>
+                                        </div>
+                                        <div className='flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100'>
+                                            <Contact className='h-4 w-4 text-emerald-500' />
+                                            <span className='font-black text-[10px] uppercase tracking-widest text-slate-600'>{user?.phoneNumber || "Not provided"}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='mt-12 pt-12 border-t border-slate-50'>
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-12'>
+                                <div className='space-y-12'>
+                                    <div>
+                                        <h2 className='text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-6 flex items-center gap-2'>
+                                            <span className='h-1.5 w-1.5 bg-indigo-600 rounded-full animate-pulse'></span>
+                                            Technical Expertise
+                                        </h2>
+                                        <div className='flex flex-wrap items-center gap-2'>
+                                            {
+                                                user?.profile?.skills.length !== 0 ? user?.profile?.skills.map((item, index) => (
+                                                    <Badge key={index} className="bg-white text-slate-700 border border-slate-100 px-4 py-2 rounded-xl shadow-sm font-black uppercase tracking-widest text-[9px] hover:border-indigo-200 transition-all hover:-translate-y-0.5">
+                                                        {item}
+                                                    </Badge>
+                                                )) : <span className='text-slate-400 font-bold italic text-sm'>Expertise not specified</span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h2 className='text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-6 flex items-center gap-2'>
+                                            <span className='h-1.5 w-1.5 bg-indigo-600 rounded-full animate-pulse'></span>
+                                            Professional Overview
+                                        </h2>
+                                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                                            <div className='bg-slate-50 p-4 rounded-2xl border border-slate-100'>
+                                                <p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Experience</p>
+                                                <p className='text-sm font-black text-slate-700'>{user?.profile?.experience || 0} Years</p>
+                                            </div>
+                                            <div className='bg-slate-50 p-4 rounded-2xl border border-slate-100'>
+                                                <p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Education</p>
+                                                <p className='text-sm font-black text-slate-700 truncate'>{user?.profile?.education || "Not Specified"}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className='space-y-12'>
+                                    <div>
+                                        <h2 className='text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-6 flex items-center gap-2'>
+                                            <span className='h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse'></span>
+                                            Verified Credentials
+                                        </h2>
+                                        <div className='flex flex-wrap gap-2'>
+                                            {
+                                                user?.profile?.certifications?.length > 0 ? (
+                                                    user.profile.certifications.map((cert, index) => (
+                                                        <Badge key={index} className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[9px]">
+                                                            {cert}
+                                                        </Badge>
+                                                    ))
+                                                ) : <span className='text-slate-400 font-bold italic text-sm'>No certifications added</span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div className='relative'>
+                                        <h2 className='text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-6 flex items-center gap-2'>
+                                            <span className='h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse'></span>
+                                            Career Artifacts
+                                        </h2>
+                                        <div className='bg-indigo-50/50 p-6 rounded-[2rem] border border-indigo-100 border-dashed group/resume hover:bg-indigo-50 transition-colors'>
+                                            <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-2">Verified Professional Resume</p>
+                                            {
+                                                user?.profile?.resume ? (
+                                                    <a target='blank' href={user?.profile?.resume} className='flex items-center gap-3 text-indigo-600 hover:text-indigo-800 transition-all font-black text-sm group/link'>
+                                                        <div className='h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover/link:shadow-md transition-all'>
+                                                            <Pen className='h-4 w-4 text-indigo-500' />
+                                                        </div>
+                                                        <span className='border-b-2 border-indigo-100 group-hover/link:border-indigo-600 transition-all font-bold'>{user?.profile?.resumeOriginalName}</span>
+                                                    </a>
+                                                ) : <span className='text-slate-400 font-bold italic text-sm'>No resume uploaded yet</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <Button onClick={() => setOpen(true)} className="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-full p-2 h-10 w-10 flex items-center justify-center shrink-0" variant="outline">
-                        <Pen className="h-4 w-4" />
-                    </Button>
                 </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-6 my-10 bg-slate-50 p-6 rounded-xl border border-slate-100'>
-                    <div className='flex items-center gap-4 text-slate-600'>
-                        <div className='p-2 bg-indigo-50 rounded-lg'>
-                            <Mail className='h-5 w-5 text-indigo-600' />
-                        </div>
-                        <span className='font-semibold'>{user?.email}</span>
+                <div className='mt-20'>
+                    <div className='flex items-center justify-between mb-8 px-4'>
+                        <h1 className='font-black text-2xl text-slate-900 tracking-tighter uppercase flex items-center gap-4'>
+                            Applied Positions
+                            <span className='h-8 px-4 bg-indigo-600 text-white border-none rounded-xl text-xs flex items-center justify-center font-black shadow-lg shadow-indigo-200'>
+                                {allAppliedJobs?.length || 0}
+                            </span>
+                        </h1>
                     </div>
-                    <div className='flex items-center gap-4 text-slate-600'>
-                        <div className='p-2 bg-emerald-50 rounded-lg'>
-                            <Contact className='h-5 w-5 text-emerald-600' />
-                        </div>
-                        <span className='font-semibold'>{user?.phoneNumber || "Not provided"}</span>
+                    <div className='bg-white rounded-[2.5rem] border border-slate-100 premium-shadow overflow-hidden'>
+                        <AppliedJobTable />
                     </div>
-                </div>
-
-                <div className='my-10'>
-                    <h2 className='text-xl font-bold mb-4 flex items-center gap-2 text-slate-900 font-display'>
-                        <span className='h-2 w-2 bg-indigo-600 rounded-full'></span>
-                        Core Skills
-                    </h2>
-                    <div className='flex flex-wrap items-center gap-2'>
-                        {
-                            user?.profile?.skills.length !== 0 ? user?.profile?.skills.map((item, index) => (
-                                <Badge key={index} className="bg-white text-slate-700 border border-slate-200 px-3 py-1 hover:border-indigo-500 transition-colors shadow-sm font-medium">
-                                    {item}
-                                </Badge>
-                            )) : <span className='text-slate-400 italic'>No skills listed</span>
-                        }
-                    </div>
-                </div>
-
-                <div className='grid w-full items-center gap-3 bg-indigo-50/30 p-6 rounded-xl border border-indigo-100 border-dashed'>
-                    <Label className="text-sm font-bold text-indigo-700 uppercase tracking-wider">Professional Resume</Label>
-                    {
-                        user?.profile?.resume ? (
-                            <a target='blank' href={user?.profile?.resume} className='flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition-colors font-bold underline underline-offset-4 decoration-indigo-200 hover:decoration-indigo-600'>
-                                <Pen className='h-4 w-4' />
-                                {user?.profile?.resumeOriginalName}
-                            </a>
-                        ) : <span className='text-slate-400 italic'>Resume not uploaded</span>
-                    }
-                </div>
-            </div>
-
-            <div className='max-w-4xl mx-auto mt-12 px-2'>
-                <h1 className='font-bold text-2xl mb-6 text-slate-900 flex items-center gap-3'>
-                    Applied Positions
-                    <Badge className='bg-indigo-600 text-white border-none px-3 py-0.5'>{allAppliedJobs?.length || 0}</Badge>
-                </h1>
-                <div className='bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden'>
-                    <AppliedJobTable />
                 </div>
             </div>
             <UpdateProfileDialog open={open} setOpen={setOpen} />
