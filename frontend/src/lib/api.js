@@ -18,7 +18,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        // Only auto-logout on 401 from OUR backend, not from Cloudinary or external services
+        const isOurBackend = error.config?.url && (
+            error.config.url.includes('localhost:5000') ||
+            error.config.baseURL?.includes('localhost:5000')
+        );
+        if (error.response?.status === 401 && isOurBackend) {
             // Global Logout on Unauthorized — but prevent infinite loop on /login
             if (window.location.pathname !== '/login') {
                 store.dispatch(setUser(null));

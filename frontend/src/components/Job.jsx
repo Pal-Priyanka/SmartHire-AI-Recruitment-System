@@ -55,9 +55,17 @@ const Job = ({ job }) => {
             <div className='absolute top-0 left-0 w-1 h-full bg-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity'></div>
 
             <div className='flex items-center justify-between mb-8'>
-                <p className='text-[10px] font-black px-4 py-1.5 bg-slate-50 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 rounded-full uppercase tracking-[0.1em] transition-colors'>
-                    {daysAgoFunction(job?.createdAt) === 0 ? "Posted Today" : `${daysAgoFunction(job?.createdAt)} days ago`}
-                </p>
+                <div className="flex items-center gap-3">
+                    <p className='text-[10px] font-black px-4 py-1.5 bg-slate-50 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 rounded-full uppercase tracking-[0.1em] transition-colors'>
+                        {daysAgoFunction(job?.createdAt) === 0 ? "Posted Today" : `${daysAgoFunction(job?.createdAt)} days ago`}
+                    </p>
+                    {job?.matchScore !== undefined && (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-full animate-in fade-in zoom-in duration-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></svg>
+                            <span className="text-[10px] font-black tracking-tight">{Math.round(job.matchScore)}% Match</span>
+                        </div>
+                    )}
+                </div>
                 <Button
                     onClick={(e) => {
                         e.stopPropagation();
@@ -73,8 +81,8 @@ const Job = ({ job }) => {
 
             <div className='mb-6'>
                 <div className='flex flex-col gap-1 mb-4'>
-                    <h2 className='text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-1 truncate'>{job?.company?.name}</h2>
-                    <h1 className='font-black text-2xl text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight leading-tight line-clamp-1 h-[2em] flex items-center'>{job?.title}</h1>
+                    <h2 className='text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] truncate'>{job?.company?.name}</h2>
+                    <h1 className='font-black text-2xl text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight leading-tight line-clamp-2 min-h-[3.5rem] mt-1'>{job?.title}</h1>
                 </div>
                 <p className='text-slate-500 text-sm font-medium leading-relaxed line-clamp-2 opacity-80 h-[3em]'>{job?.description}</p>
             </div>

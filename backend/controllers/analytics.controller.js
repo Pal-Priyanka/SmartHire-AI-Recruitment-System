@@ -31,6 +31,21 @@ export const getRecruiterAnalytics = async (req, res) => {
             scheduledDate: { $gte: new Date().toISOString().split('T')[0] }
         });
 
+        const withdrawalReasons = applications
+            .filter(app => app.withdrawalReason)
+            .reduce((acc, app) => {
+                acc[app.withdrawalReason] = (acc[app.withdrawalReason] || 0) + 1;
+                return acc;
+            }, {});
+
+        // Mock Salary Benchmarking (compared to job.salary)
+        const jobData = await Job.find({ created_by: userId });
+        const salaryBenchmarking = jobData.map(j => ({
+            title: j.title,
+            current: j.salary,
+            market: Math.round(j.salary * (1 + (Math.random() * 0.15))) // Mock market rate +15%
+        }));
+
         return res.status(200).json({
             analytics: {
                 totalJobs,
@@ -38,7 +53,9 @@ export const getRecruiterAnalytics = async (req, res) => {
                 totalApplications,
                 statusDistribution,
                 averageAiScore,
-                upcomingInterviews
+                upcomingInterviews,
+                withdrawalReasons,
+                salaryBenchmarking
             },
             success: true
         });
@@ -84,7 +101,7 @@ export const getForecastAnalytics = async (req, res) => {
     try {
         const userId = req.id;
         const forecast = await calculateTimeToFillForecast(userId);
-        
+
         return res.status(200).json({
             forecast,
             success: true

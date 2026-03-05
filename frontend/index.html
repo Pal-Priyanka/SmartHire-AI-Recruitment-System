@@ -7,6 +7,20 @@
     <title>Vite + React</title>
   </head>
   <body>
+    <script>
+      window.addEventListener('error', function(e) {
+        var el = document.createElement('div');
+        el.style.cssText = 'color: white; background: red; z-index: 999999; position: fixed; top: 0; left: 0; padding: 20px; font-family: monospace; font-size: 16px; width: 100%; white-space: pre-wrap;';
+        el.innerText = 'GLOBAL ERROR: ' + e.message + '\n' + (e.error ? e.error.stack : '');
+        document.body.appendChild(el);
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        var el = document.createElement('div');
+        el.style.cssText = 'color: white; background: darkred; z-index: 999999; position: fixed; top: 100px; left: 0; padding: 20px; font-family: monospace; font-size: 16px; width: 100%; white-space: pre-wrap;';
+        el.innerText = 'PROMISE ERROR: ' + e.reason;
+        document.body.appendChild(el);
+      });
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

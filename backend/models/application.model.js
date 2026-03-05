@@ -44,6 +44,16 @@ const applicationSchema = new mongoose.Schema({
     predictedRole: String,
     experience: String,
     education: String,
-    certifications: [String]
+    certifications: [String],
+    aiHighlight: {
+        type: String
+    },
+    withdrawalReason: {
+        type: String,
+        enum: ['Salary/Benefits', 'Location/Commute', 'Process Speed', 'Offer from elsewhere', 'Changed mind', 'Other']
+    },
+    suggestedSalary: {
+        type: Number // Market rate prediction
+    }
 }, { timestamps: true });
 export const Application = mongoose.model("Application", applicationSchema);

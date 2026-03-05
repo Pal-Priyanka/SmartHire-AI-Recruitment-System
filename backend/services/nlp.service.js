@@ -8,7 +8,7 @@
  *   10% — Additional Factors (keyword relevance, soft skills, projects)
  */
 
-import { analyzeWithOllama } from './ollama.service.js';
+import { analyzeWithOllama, generateHighlight } from './ollama.service.js';
 
 // ─────────────────────────────────────────────
 // 1. COMPREHENSIVE SKILL TAXONOMY & SYNONYMS
@@ -463,7 +463,7 @@ export const generateMatchInsights = async (resumeText, jobData, parsedData = {}
 
         const finalExperience = (user?.profile?.experience > 0)
             ? `${user.profile.experience}+ Years`
-            : (candidateExp > 0 ? `${candidateExp}+ Years` : "Not Specified");
+            : (candidateExp > 0 ? `${candidateExp}+ Years` : "Fresher (0 Years)");
 
         const finalEducation = (user?.profile?.education && user.profile.education !== "Not Specified")
             ? user.profile.education
@@ -563,7 +563,7 @@ export const generateMatchInsights = async (resumeText, jobData, parsedData = {}
     // ── EXPERIENCE & EDUCATION DISPLAY TEXT ──
     const finalExperience = (user?.profile?.experience > 0)
         ? `${user.profile.experience}+ Years`
-        : (candidateExp > 0 ? `${candidateExp}+ Years` : "Not Specified");
+        : (candidateExp > 0 ? `${candidateExp}+ Years` : "Fresher (0 Years)");
 
     const finalEducation = (user?.profile?.education && user.profile.education !== "Not Specified")
         ? user.profile.education
@@ -640,6 +640,15 @@ export const generateMatchInsights = async (resumeText, jobData, parsedData = {}
         education: finalEducation,
         certifications: finalCertifications
     };
+};
+
+export const generateSpotlightHighlight = async (resumeText, jobData) => {
+    try {
+        const highlight = await generateHighlight(resumeText, jobData);
+        return highlight || "Highly relevant profile with matching core competencies.";
+    } catch (error) {
+        return "Experienced professional with relevant skills.";
+    }
 };
 
 // ─────────────────────────────────────────────

@@ -21,15 +21,15 @@ const HeroSection = () => {
 
             <div className='flex flex-col gap-8 my-24 items-center'>
                 <span className='px-6 py-2 rounded-full glass border border-indigo-100 text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] shadow-sm animate-bounce'>
-                    No. 1 AI-Powered Recruitment Platform
+                    Intelligent Workforce Alignment
                 </span>
 
                 <h1 className='text-6xl md:text-8xl font-black tracking-tighter text-slate-950 leading-[0.9] max-w-4xl'>
-                    Hire the Best <br /> with <span className='text-gradient'>Smart AI</span>
+                    Your next big move. <br /> <span className='text-gradient'>Deciphered by AI.</span>
                 </h1>
 
                 <p className='text-slate-500 max-w-2xl mx-auto text-lg md:text-xl font-medium leading-relaxed opacity-80'>
-                    Revolutionize your hiring process with AI-driven screening, automated scheduling, and real-time candidate insights.
+                    We don't just list jobs. We calculate where you’ll actually thrive using deep semantic analysis.
                 </p>
 
                 <div className='flex w-full max-w-3xl bg-white/80 backdrop-blur-3xl border border-slate-200 p-2 rounded-[2rem] items-center gap-4 transition-all hover:shadow-[0_30px_60px_-15px_rgba(99,102,241,0.2)] hover:border-indigo-100 focus-within:ring-4 focus-within:ring-indigo-500/10 shadow-2xl'>
@@ -37,13 +37,13 @@ const HeroSection = () => {
                         <Search className='h-5 w-5 text-slate-400' />
                         <input
                             type="text"
-                            placeholder='Search for roles, skills, or companies...'
+                            placeholder='What are we looking for?'
                             onChange={(e) => setQuery(e.target.value)}
                             className='bg-transparent outline-none border-none w-full py-4 text-slate-900 placeholder-slate-400 font-semibold'
                         />
                     </div>
-                    <Button onClick={searchJobHandler} className="rounded-2xl bg-indigo-600 hover:bg-indigo-700 h-14 px-8 flex items-center justify-center transition-all hover:scale-[1.02] shadow-xl shadow-indigo-200 text-white font-black uppercase tracking-widest text-xs">
-                        Find Jobs
+                    <Button onClick={searchJobHandler} className="rounded-2xl bg-slate-900 hover:bg-indigo-600 h-14 px-8 flex items-center justify-center transition-all hover:scale-[1.02] shadow-xl shadow-indigo-200 text-white font-black uppercase tracking-widest text-xs">
+                        Find my match
                     </Button>
                 </div>
 

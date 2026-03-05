@@ -127,7 +127,7 @@ export const logout = async (req, res) => {
 }
 export const updateProfile = async (req, res) => {
     try {
-        const { fullname, email, phoneNumber, bio, skills, experience, education, certifications } = req.body;
+        const { fullname, email, phoneNumber, bio, skills, experience, education, certifications, removeResume } = req.body;
 
         const userId = req.id; // middleware authentication
         let user = await User.findById(userId);
@@ -137,6 +137,12 @@ export const updateProfile = async (req, res) => {
                 message: "User not found.",
                 success: false
             })
+        }
+
+        // Handle resume removal if requested
+        if (removeResume === "true") {
+            user.profile.resume = "";
+            user.profile.resumeOriginalName = "";
         }
 
         const file = req.file;
@@ -162,8 +168,9 @@ export const updateProfile = async (req, res) => {
             }
 
             const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
-                access_mode: 'public',
-                resource_type: 'auto'
+                resource_type: 'raw',
+                type: 'upload',
+                folder: 'resumes'
             });
             resume = cloudResponse.secure_url;
             resumeOriginalName = file.originalname;

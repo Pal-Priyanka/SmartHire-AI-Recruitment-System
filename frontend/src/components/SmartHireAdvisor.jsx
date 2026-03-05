@@ -44,15 +44,22 @@ const SmartHireAdvisor = ({ jobId }) => {
             }
         } catch (error) {
             console.log(error);
-            toast.error("Failed to generate AI analysis.");
+            toast.error("Hmm, the analysis engine hit a wall. Try again?");
         } finally {
             setLoading(false);
         }
     }, [jobId, hasResume]);
 
+    // Reset state and ref when jobId changes to prevent stale data display
+    useEffect(() => {
+        setInsights(null);
+        hasFetchedRef.current = false;
+        setAnalysisTriggered(false);
+    }, [jobId]);
+
     // Auto-fetch on mount if user already has a resume
     useEffect(() => {
-        if (hasResume && !uploading && !analysisTriggered) {
+        if (hasResume && !uploading && !analysisTriggered && !hasFetchedRef.current) {
             fetchMatchInsights();
         }
     }, [hasResume, uploading, analysisTriggered, fetchMatchInsights]);
@@ -70,17 +77,17 @@ const SmartHireAdvisor = ({ jobId }) => {
         const ext = '.' + selectedFile.name.split('.').pop().toLowerCase();
 
         if (!allowedTypes.includes(selectedFile.type) && !allowedExtensions.includes(ext)) {
-            toast.error("Invalid file format. Only PDF, DOC, and DOCX files are supported.");
+            toast.error("We only speak PDF, DOC, and DOCX — try one of those.");
             return false;
         }
 
         if (selectedFile.size > 5 * 1024 * 1024) {
-            toast.error("File size exceeds 5MB limit.");
+            toast.error("That file's a bit heavy — keep it under 5MB.");
             return false;
         }
 
         if (selectedFile.size === 0) {
-            toast.error("File appears to be empty. Please select a valid document.");
+            toast.error("This file looks empty — nothing for us to read.");
             return false;
         }
 
@@ -135,7 +142,7 @@ const SmartHireAdvisor = ({ jobId }) => {
             if (res.data.success) {
                 setUploadProgress(100);
                 dispatch(setUser(res.data.user));
-                toast.success("Resume uploaded! Starting AI analysis...");
+                toast.success("Got it. Reading between the lines...");
 
                 // Auto-trigger analysis after short delay for UI feedback
                 setTimeout(async () => {
@@ -153,7 +160,7 @@ const SmartHireAdvisor = ({ jobId }) => {
                         }
                     } catch (err) {
                         console.log(err);
-                        toast.error("Analysis failed. Please try again.");
+                        toast.error("The analysis stumbled — give it another shot.");
                     } finally {
                         setLoading(false);
                     }
@@ -183,7 +190,7 @@ const SmartHireAdvisor = ({ jobId }) => {
                         </div>
                         <div>
                             <h2 className='font-black text-2xl text-slate-900 tracking-tight'>SmartHire Advisor</h2>
-                            <p className='text-indigo-500 font-medium text-xs animate-pulse'>Analyzing your resume against job requirements...</p>
+                            <p className='text-indigo-500 font-medium text-xs animate-pulse'>Reading between the lines...</p>
                         </div>
                     </div>
 
@@ -241,8 +248,8 @@ const SmartHireAdvisor = ({ jobId }) => {
                                 </svg>
                                 <UploadCloud className='h-10 w-10 text-indigo-500 animate-pulse' />
                             </div>
-                            <h2 className='font-black text-xl text-slate-900 mb-2 tracking-tight'>Uploading Document...</h2>
-                            <p className='text-slate-500 font-medium text-sm'>{uploadProgress}% completed</p>
+                            <h2 className='font-black text-xl text-slate-900 mb-2 tracking-tight'>Processing your story...</h2>
+                            <p className='text-slate-500 font-medium text-sm'>{uploadProgress}% — almost there</p>
                             <div className='w-64 h-2 bg-slate-100 rounded-full mt-4 overflow-hidden'>
                                 <motion.div
                                     className='h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full'
@@ -257,17 +264,17 @@ const SmartHireAdvisor = ({ jobId }) => {
                             <div className='h-24 w-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-6 group-hover:bg-indigo-50 group-hover:scale-110 transition-all duration-500'>
                                 <Lock className='h-10 w-10 text-slate-300 group-hover:text-indigo-400 transition-colors duration-500' />
                             </div>
-                            <h2 className='font-black text-2xl text-slate-900 mb-3 tracking-tight'>AI Analysis Locked</h2>
+                            <h2 className='font-black text-2xl text-slate-900 mb-3 tracking-tight'>We need your resume first.</h2>
                             <p className='text-slate-500 max-w-md font-medium leading-relaxed mb-3'>
-                                Unlock deep semantic matching and strategic hiring insights by uploading your resume.
+                                Drop it here and we'll decode your career trajectory against this role — semantically.
                             </p>
                             <p className='text-slate-400 text-sm mb-8'>
-                                Drag & drop your file here, or click the button below.
+                                Drag & drop, or click below. We'll handle the rest.
                             </p>
 
                             <label className='flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all cursor-pointer shadow-xl shadow-slate-200 hover:shadow-indigo-200 hover:-translate-y-0.5 active:scale-95'>
                                 <FileText className='h-4 w-4' />
-                                Upload & Analyze Resume
+                                Upload resume — let's take a look
                                 <input
                                     ref={fileInputRef}
                                     type="file"
@@ -293,7 +300,7 @@ const SmartHireAdvisor = ({ jobId }) => {
     // RENDER: Full Analysis Results
     // ──────────────────────────────────────
     const scoreColor = insights.score > 75 ? '#10b981' : insights.score > 50 ? '#6366f1' : '#f59e0b';
-    const scoreLabel = insights.score > 75 ? 'Excellent' : insights.score > 50 ? 'Good' : insights.score > 30 ? 'Fair' : 'Low';
+    const scoreLabel = insights.score > 75 ? 'Strong Fit' : insights.score > 50 ? 'Promising' : insights.score > 30 ? 'Partial' : 'Divergent';
 
     return (
         <div className='bg-white p-10 rounded-[3.5rem] border border-indigo-100 shadow-[0_30px_60px_-15px_rgba(79,70,229,0.08)] relative overflow-hidden group'>
@@ -309,11 +316,11 @@ const SmartHireAdvisor = ({ jobId }) => {
                         </div>
                         <div>
                             <h2 className='font-black text-2xl text-slate-900 tracking-tight'>SmartHire Advisor</h2>
-                            <p className='text-slate-500 font-medium text-xs'>NLP-Powered Semantic Analysis</p>
+                            <p className='text-slate-500 font-medium text-xs'>Semantic Alignment Analysis</p>
                         </div>
                     </div>
                     <div className='flex flex-col items-end gap-1'>
-                        <div className='px-4 py-2 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest'>ADVISORY MODE</div>
+                        <div className='px-4 py-2 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest'>Deep Analysis</div>
                         {insights.predictedRole && (
                             <div className='flex items-center gap-1.5 px-3 py-1 bg-slate-900 text-white rounded-lg text-[9px] font-bold uppercase tracking-wider shadow-lg shadow-slate-200'>
                                 <Target className='h-3.5 w-3.5 text-indigo-400' />
@@ -348,7 +355,7 @@ const SmartHireAdvisor = ({ jobId }) => {
                         </div>
                         <div className='flex items-center gap-1.5 mt-4'>
                             <Target className='h-3.5 w-3.5 text-indigo-500' />
-                            <span className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Weighted Match Score</span>
+                            <span className='text-[10px] font-black text-slate-400 uppercase tracking-widest'>Alignment Score</span>
                         </div>
 
                         {/* Score Breakdown Bars */}
@@ -383,19 +390,19 @@ const SmartHireAdvisor = ({ jobId }) => {
                     <div className='md:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-4'>
                         <div className='p-6 bg-white border border-indigo-100 rounded-[2rem] shadow-sm flex flex-col items-center text-center group/card hover:border-indigo-300 transition-colors'>
                             <TrendingUp className='h-6 w-6 text-indigo-500 mb-3 group-hover/card:scale-110 transition-transform' />
-                            <span className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Experience</span>
+                            <span className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Journey</span>
                             <span className='text-sm font-black text-slate-900'>{insights.experience}</span>
                         </div>
                         <div className='p-6 bg-white border border-indigo-100 rounded-[2rem] shadow-sm flex flex-col items-center text-center group/card hover:border-indigo-300 transition-colors'>
                             <FileText className='h-6 w-6 text-indigo-500 mb-3 group-hover/card:scale-110 transition-transform' />
-                            <span className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Education</span>
+                            <span className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Credentials</span>
                             <span className='text-sm font-black text-slate-900'>{insights.education}</span>
                         </div>
                         <div className='p-6 bg-white border border-indigo-100 rounded-[2rem] shadow-sm flex flex-col items-center text-center group/card hover:border-indigo-300 transition-colors'>
                             <Shield className='h-6 w-6 text-indigo-500 mb-3 group-hover/card:scale-110 transition-transform' />
-                            <span className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Certifications</span>
+                            <span className='text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1'>Credentials+</span>
                             <span className='text-sm font-black text-slate-900'>
-                                {insights.certifications && insights.certifications.length > 0 ? `${insights.certifications.length} Detected` : "None Found"}
+                                {insights.certifications && insights.certifications.length > 0 ? `${insights.certifications.length} verified` : "None on record"}
                             </span>
                         </div>
                     </div>
@@ -408,7 +415,7 @@ const SmartHireAdvisor = ({ jobId }) => {
                         <div className='bg-emerald-50/30 p-5 rounded-3xl border border-emerald-100/50'>
                             <div className='flex items-center gap-2 mb-3'>
                                 <CheckCircle2 className='h-4 w-4 text-emerald-500' />
-                                <span className='font-black text-[10px] uppercase tracking-wider text-emerald-700'>Matching Skills</span>
+                                <span className='font-black text-[10px] uppercase tracking-wider text-emerald-700'>Where You Shine</span>
                                 {insights.matchingSkills.length > 0 && (
                                     <span className='ml-auto text-[10px] font-bold text-emerald-500'>{insights.matchingSkills.length} found</span>
                                 )}
@@ -427,7 +434,7 @@ const SmartHireAdvisor = ({ jobId }) => {
                                         </motion.span>
                                     ))
                                 ) : (
-                                    <span className='text-[10px] font-medium text-slate-400 italic'>No direct skill matches detected</span>
+                                    <span className='text-[10px] font-medium text-slate-400 italic'>No direct overlaps — but that doesn't mean zero potential.</span>
                                 )}
                             </div>
                         </div>
@@ -436,9 +443,9 @@ const SmartHireAdvisor = ({ jobId }) => {
                         <div className='bg-amber-50/30 p-5 rounded-3xl border border-amber-100/50'>
                             <div className='flex items-center gap-2 mb-3'>
                                 <AlertCircle className='h-4 w-4 text-amber-500' />
-                                <span className='font-black text-[10px] uppercase tracking-wider text-amber-700'>Missing Skills</span>
+                                <span className='font-black text-[10px] uppercase tracking-wider text-amber-700'>Room to Grow</span>
                                 {insights.missingSkills.length > 0 && (
-                                    <span className='ml-auto text-[10px] font-bold text-amber-500'>{insights.missingSkills.length} gaps</span>
+                                    <span className='ml-auto text-[10px] font-bold text-amber-500'>{insights.missingSkills.length} to explore</span>
                                 )}
                             </div>
                             <div className='flex flex-wrap gap-2'>
@@ -455,7 +462,7 @@ const SmartHireAdvisor = ({ jobId }) => {
                                         </motion.span>
                                     ))
                                 ) : (
-                                    <span className='text-[10px] font-medium text-emerald-500'>✓ No skill gaps detected — great alignment!</span>
+                                    <span className='text-[10px] font-medium text-emerald-500'>✓ Clean sweep — no gaps detected.</span>
                                 )}
                             </div>
                         </div>
@@ -466,7 +473,7 @@ const SmartHireAdvisor = ({ jobId }) => {
                         <div className='bg-indigo-50/30 p-5 rounded-3xl border border-indigo-100/50'>
                             <div className='flex items-center gap-2 mb-3'>
                                 <Zap className='h-4 w-4 text-indigo-500' />
-                                <span className='font-black text-[10px] uppercase tracking-wider text-indigo-700'>Detected Certifications</span>
+                                <span className='font-black text-[10px] uppercase tracking-wider text-indigo-700'>Verified Credentials</span>
                             </div>
                             <div className='flex flex-wrap gap-2'>
                                 {insights.certifications.map((cert, i) => (
@@ -486,7 +493,7 @@ const SmartHireAdvisor = ({ jobId }) => {
                         onClick={() => setExpanded(!expanded)}
                         className='w-full flex items-center justify-between text-[11px] font-black uppercase tracking-[0.2em] text-indigo-600 hover:text-indigo-700 transition-colors group/expand'
                     >
-                        {expanded ? 'Hide Strategic Insights' : 'Reveal Strategic Insights'}
+                        {expanded ? 'Collapse the deep dive' : 'Go deeper — strategic insights'}
                         {expanded ? <ChevronUp className='h-4 w-4 group-hover/expand:-translate-y-0.5 transition-transform' /> : <ChevronDown className='h-4 w-4 group-hover/expand:translate-y-0.5 transition-transform' />}
                     </button>
 
@@ -505,7 +512,7 @@ const SmartHireAdvisor = ({ jobId }) => {
                                         <div className='bg-indigo-50/30 p-6 rounded-[2rem] border border-indigo-100/50'>
                                             <h4 className='flex items-center gap-2 text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-4'>
                                                 <Shield className='h-3.5 w-3.5' />
-                                                Strength Areas
+                                                Your Unfair Advantages
                                             </h4>
                                             <ul className='space-y-3'>
                                                 {insights.strengthAreas?.map((area, i) => (
@@ -521,7 +528,7 @@ const SmartHireAdvisor = ({ jobId }) => {
                                         <div className='bg-amber-50/20 p-6 rounded-[2rem] border border-amber-100/30'>
                                             <h4 className='flex items-center gap-2 text-[10px] font-black text-amber-600 uppercase tracking-widest mb-4'>
                                                 <Zap className='h-3.5 w-3.5' />
-                                                Skill Gap Insights
+                                                The Gap Analysis
                                             </h4>
                                             <p className='text-slate-600 text-sm font-medium leading-relaxed'>
                                                 {insights.gapInsights}
@@ -533,7 +540,7 @@ const SmartHireAdvisor = ({ jobId }) => {
                                     <div className='bg-gradient-to-br from-slate-50 to-indigo-50/30 p-6 rounded-[2rem] border border-slate-100'>
                                         <h4 className='flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-5'>
                                             <Lightbulb className='h-3.5 w-3.5 text-amber-500' />
-                                            How to Improve Your Match
+                                            Refining Your Edge
                                         </h4>
                                         <ul className='space-y-4'>
                                             {insights.improvementTips?.map((tip, i) => (

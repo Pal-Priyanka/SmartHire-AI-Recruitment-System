@@ -43,7 +43,7 @@ const Profile = () => {
                                 </div>
                                 <div className='text-center md:text-left pt-2'>
                                     <h1 className='font-black text-4xl text-slate-900 tracking-tighter uppercase'>{user?.fullname}</h1>
-                                    <p className='text-slate-500 mt-3 text-lg font-medium leading-relaxed max-w-lg'>{user?.profile?.bio || "No professional bio added yet."}</p>
+                                    <p className='text-slate-500 mt-3 text-lg font-medium leading-relaxed max-w-lg'>{user?.profile?.bio || "No bio yet — a few words go a long way."}</p>
 
                                     <div className='flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6'>
                                         <div className='flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100'>
@@ -52,7 +52,7 @@ const Profile = () => {
                                         </div>
                                         <div className='flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100'>
                                             <Contact className='h-4 w-4 text-emerald-500' />
-                                            <span className='font-black text-[10px] uppercase tracking-widest text-slate-600'>{user?.phoneNumber || "Not provided"}</span>
+                                            <span className='font-black text-[10px] uppercase tracking-widest text-slate-600'>{user?.phoneNumber || "Not on file"}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -65,7 +65,7 @@ const Profile = () => {
                                     <div>
                                         <h2 className='text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-6 flex items-center gap-2'>
                                             <span className='h-1.5 w-1.5 bg-indigo-600 rounded-full animate-pulse'></span>
-                                            Technical Expertise
+                                            Your Toolkit
                                         </h2>
                                         <div className='flex flex-wrap items-center gap-2'>
                                             {
@@ -73,7 +73,7 @@ const Profile = () => {
                                                     <Badge key={index} className="bg-white text-slate-700 border border-slate-100 px-4 py-2 rounded-xl shadow-sm font-black uppercase tracking-widest text-[9px] hover:border-indigo-200 transition-all hover:-translate-y-0.5">
                                                         {item}
                                                     </Badge>
-                                                )) : <span className='text-slate-400 font-bold italic text-sm'>Expertise not specified</span>
+                                                )) : <span className='text-slate-400 font-bold italic text-sm'>Nothing listed yet — let's fix that.</span>
                                             }
                                         </div>
                                     </div>
@@ -81,16 +81,16 @@ const Profile = () => {
                                     <div>
                                         <h2 className='text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-6 flex items-center gap-2'>
                                             <span className='h-1.5 w-1.5 bg-indigo-600 rounded-full animate-pulse'></span>
-                                            Professional Overview
+                                            Professional Journey
                                         </h2>
                                         <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                                             <div className='bg-slate-50 p-4 rounded-2xl border border-slate-100'>
-                                                <p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Experience</p>
+                                                <p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Journey</p>
                                                 <p className='text-sm font-black text-slate-700'>{user?.profile?.experience || 0} Years</p>
                                             </div>
                                             <div className='bg-slate-50 p-4 rounded-2xl border border-slate-100'>
-                                                <p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Education</p>
-                                                <p className='text-sm font-black text-slate-700 truncate'>{user?.profile?.education || "Not Specified"}</p>
+                                                <p className='text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1'>Credentials</p>
+                                                <p className='text-sm font-black text-slate-700 truncate'>{user?.profile?.education || "Not specified yet"}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -110,7 +110,7 @@ const Profile = () => {
                                                             {cert}
                                                         </Badge>
                                                     ))
-                                                ) : <span className='text-slate-400 font-bold italic text-sm'>No certifications added</span>
+                                                ) : <span className='text-slate-400 font-bold italic text-sm'>None on record — add them to stand out.</span>
                                             }
                                         </div>
                                     </div>
@@ -118,19 +118,19 @@ const Profile = () => {
                                     <div className='relative'>
                                         <h2 className='text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-6 flex items-center gap-2'>
                                             <span className='h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse'></span>
-                                            Career Artifacts
+                                            Your Resume
                                         </h2>
                                         <div className='bg-indigo-50/50 p-6 rounded-[2rem] border border-indigo-100 border-dashed group/resume hover:bg-indigo-50 transition-colors'>
-                                            <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-2">Verified Professional Resume</p>
+                                            <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-2">Uploaded Document</p>
                                             {
                                                 user?.profile?.resume ? (
-                                                    <a target='blank' href={user?.profile?.resume} className='flex items-center gap-3 text-indigo-600 hover:text-indigo-800 transition-all font-black text-sm group/link'>
+                                                    <a target='_blank' rel="noopener noreferrer" href={user?.profile?.resume} className='flex items-center gap-3 text-indigo-600 hover:text-indigo-800 transition-all font-black text-sm group/link'>
                                                         <div className='h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover/link:shadow-md transition-all'>
                                                             <Pen className='h-4 w-4 text-indigo-500' />
                                                         </div>
                                                         <span className='border-b-2 border-indigo-100 group-hover/link:border-indigo-600 transition-all font-bold'>{user?.profile?.resumeOriginalName}</span>
                                                     </a>
-                                                ) : <span className='text-slate-400 font-bold italic text-sm'>No resume uploaded yet</span>
+                                                ) : <span className='text-slate-400 font-bold italic text-sm'>No resume uploaded — let's change that.</span>
                                             }
                                         </div>
                                     </div>
@@ -143,7 +143,7 @@ const Profile = () => {
                 <div className='mt-20'>
                     <div className='flex items-center justify-between mb-8 px-4'>
                         <h1 className='font-black text-2xl text-slate-900 tracking-tighter uppercase flex items-center gap-4'>
-                            Applied Positions
+                            Your Applications
                             <span className='h-8 px-4 bg-indigo-600 text-white border-none rounded-xl text-xs flex items-center justify-center font-black shadow-lg shadow-indigo-200'>
                                 {allAppliedJobs?.length || 0}
                             </span>

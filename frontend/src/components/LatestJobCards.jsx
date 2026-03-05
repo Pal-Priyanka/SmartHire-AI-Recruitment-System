@@ -21,7 +21,7 @@ const LatestJobCards = ({ job }) => {
                 </div>
 
                 <div className='mb-6'>
-                    <h1 className='font-black text-2xl my-3 text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight leading-tight line-clamp-1 h-[1.2em]'>{job?.title}</h1>
+                    <h1 className='font-black text-2xl my-3 text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight leading-tight line-clamp-2 min-h-[3.5rem]'>{job?.title}</h1>
                     <p className='text-sm text-slate-500 font-medium leading-relaxed line-clamp-2 opacity-80 h-[3em]'>{job?.description}</p>
                 </div>
 

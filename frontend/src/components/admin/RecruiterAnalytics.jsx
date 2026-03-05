@@ -181,6 +181,62 @@ const RecruiterAnalytics = () => {
                     </div>
 
                     {/* Predictive AI Section */}
+                    {/* (Existing Time-to-Fill Chart remains here) */}
+
+                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-10'>
+                        {/* Attrition Analysis */}
+                        <div className='bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-100/50'>
+                            <h2 className='text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] mb-10 flex items-center gap-3'>
+                                <span className='h-2 w-2 bg-rose-500 rounded-full'></span>
+                                Attrition Analysis (Withdrawal Reasons)
+                            </h2>
+                            <div className='h-[300px]'>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={Object.keys(data.withdrawalReasons || {}).map(key => ({ name: key, value: data.withdrawalReasons[key] }))}
+                                            dataKey="value"
+                                            nameKey="name"
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={90}
+                                            paddingAngle={8}
+                                        >
+                                            {Object.keys(data.withdrawalReasons || {}).map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={['#F87171', '#FB923C', '#FBBF24', '#34D399', '#60A5FA'][index % 5]} cornerRadius={8} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ backgroundColor: '#fff', border: 'none', borderRadius: '1rem', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Market Pay Benchmarking */}
+                        <div className='bg-slate-900 p-10 rounded-[3rem] text-white shadow-xl'>
+                            <h2 className='text-[10px] font-black text-indigo-400 uppercase tracking-[0.25em] mb-10 flex items-center gap-3'>
+                                <span className='h-2 w-2 bg-indigo-500 rounded-full'></span>
+                                Market Pay Benchmarking
+                            </h2>
+                            <div className='h-[300px]'>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={data.salaryBenchmarking || []}>
+                                        <XAxis dataKey="title" hide />
+                                        <YAxis stroke="rgba(255,255,255,0.1)" hide />
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '1rem' }}
+                                            itemStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase' }}
+                                        />
+                                        <Bar dataKey="current" fill="#6366F1" radius={[8, 8, 0, 0]} name="Offered" />
+                                        <Bar dataKey="market" fill="#F472B6" radius={[8, 8, 0, 0]} name="Market Avg" />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <p className='text-[9px] text-slate-400 mt-6 font-medium text-center italic'>Comparing your offered salaries against AI-predicted market rates based on JD keywords.</p>
+                        </div>
+                    </div>
+
                     <div className='bg-slate-900 p-12 rounded-[4rem] text-white shadow-3xl shadow-indigo-200/20 relative overflow-hidden'>
                         <div className='absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] -mr-64 -mt-64'></div>
                         <div className='relative z-10'>

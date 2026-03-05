@@ -3,16 +3,20 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '../ui/button';
-import { ExternalLink, MoreHorizontal, Info } from 'lucide-react';
+import { ExternalLink, MoreHorizontal, Info, Sparkles } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import { APPLICATION_API_END_POINT } from '@/utils/constant';
 import api from '@/lib/api';
+import ScheduleInterviewDialog from './ScheduleInterviewDialog';
+import { Calendar } from 'lucide-react';
 
 const shortlistingStatus = ["Accepted", "Rejected"];
 
 const ApplicantsTable = ({ isGlobal = false }) => {
     const { applicants } = useSelector(store => store.application);
+    const [openSchedule, setOpenSchedule] = React.useState(false);
+    const [selectedApplication, setSelectedApplication] = React.useState(null);
 
     const statusHandler = async (status, id) => {
         try {
@@ -64,7 +68,15 @@ const ApplicantsTable = ({ isGlobal = false }) => {
                                 <TableCell className="px-6 py-4">
                                     <div className='flex flex-col'>
                                         <span className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight text-sm">{item?.applicant?.fullname}</span>
-                                        <span className="text-[10px] text-slate-500 font-bold tracking-wider">{item?.applicant?.email}</span>
+                                        <span className="text-[10px] text-slate-500 font-bold tracking-wider mb-2">{item?.applicant?.email}</span>
+                                        {item.aiHighlight && (
+                                            <div className='flex items-center gap-1.5 p-2 bg-indigo-50/50 rounded-xl border border-indigo-100/50 max-w-[200px]'>
+                                                <Sparkles className='h-3 w-3 text-indigo-500 flex-shrink-0' />
+                                                <p className='text-[10px] text-indigo-700 font-black leading-tight italic line-clamp-2'>
+                                                    {item.aiHighlight}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </TableCell>
                                 <TableCell className="py-4">
@@ -166,6 +178,20 @@ const ApplicantsTable = ({ isGlobal = false }) => {
                                                     </Button>
                                                 ))
                                             }
+                                            <div className='h-px bg-slate-50 my-1'></div>
+                                            <Button
+                                                variant="ghost"
+                                                onClick={() => {
+                                                    setSelectedApplication(item);
+                                                    setOpenSchedule(true);
+                                                }}
+                                                className={`flex items-center justify-start gap-4 w-full px-4 py-2.5 rounded-xl cursor-pointer transition-all hover:bg-indigo-50 group h-auto`}
+                                            >
+                                                <Calendar className='h-3.5 w-3.5 text-indigo-400 group-hover:text-indigo-600' />
+                                                <span className='text-[11px] font-black uppercase tracking-widest text-slate-600 group-hover:text-indigo-600'>
+                                                    Schedule Interview
+                                                </span>
+                                            </Button>
                                         </PopoverContent>
                                     </Popover>
                                 </TableCell>
@@ -174,6 +200,13 @@ const ApplicantsTable = ({ isGlobal = false }) => {
                     }
                 </TableBody>
             </Table>
+            {selectedApplication && (
+                <ScheduleInterviewDialog
+                    open={openSchedule}
+                    setOpen={setOpenSchedule}
+                    application={selectedApplication}
+                />
+            )}
         </div>
     )
 }

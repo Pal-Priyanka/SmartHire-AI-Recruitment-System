@@ -22,8 +22,11 @@ const CategoryCarousel = () => {
     }
 
     return (
-        <div>
-            <Carousel className="w-full max-w-xl mx-auto my-20">
+        <div className='max-w-7xl mx-auto px-4'>
+            <div className='text-center my-10'>
+                <h2 className='text-xs font-black text-indigo-600 uppercase tracking-[0.3em] mb-4'>Pick your arena</h2>
+            </div>
+            <Carousel className="w-full max-w-xl mx-auto my-10">
                 <CarouselContent className="-ml-2 md:-ml-4">
                     {
                         category.map((cat, index) => (

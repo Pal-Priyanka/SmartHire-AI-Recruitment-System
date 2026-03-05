@@ -40,19 +40,19 @@ const FilterCard = () => {
                         className="w-full h-14 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 border border-slate-100 flex items-center justify-center gap-3 transition-all group/saved"
                     >
                         <Bookmark className="h-5 w-5 group-hover/saved:fill-indigo-600 transition-all" />
-                        <span className="font-black uppercase tracking-widest text-[10px]">Access Saved Jobs</span>
+                        <span className="font-black uppercase tracking-widest text-[10px]">Your Bookmarks</span>
                     </Button>
                 </Link>
             </div>
             <div className='flex items-center justify-between mb-10'>
-                <h1 className='font-black text-2xl text-slate-900 tracking-tighter'>Filters</h1>
+                <h1 className='font-black text-2xl text-slate-900 tracking-tighter'>Refine</h1>
                 <Button
                     variant="ghost"
                     size="sm"
                     className='text-[10px] font-black uppercase tracking-[0.15em] text-indigo-600 hover:text-indigo-700 hover:bg-slate-50 px-3 h-8 rounded-xl'
                     onClick={() => setSelectedValue('')}
                 >
-                    Reset All
+                    Clear All
                 </Button>
             </div>
             <div className='space-y-10'>

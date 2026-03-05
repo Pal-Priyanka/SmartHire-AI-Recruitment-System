@@ -8,7 +8,7 @@ const AppliedJobTable = () => {
     return (
         <div className='overflow-hidden border-none'>
             <Table>
-                <TableCaption className="text-slate-400 py-6 font-medium text-[10px] uppercase tracking-widest bg-slate-50/50 border-t border-slate-100">A chronological list of your job applications</TableCaption>
+                <TableCaption className="text-slate-400 py-6 font-medium text-[10px] uppercase tracking-widest bg-slate-50/50 border-t border-slate-100">Your application timeline — past and present.</TableCaption>
                 <TableHeader className="bg-slate-50/80">
                     <TableRow className="hover:bg-transparent border-slate-100 h-14">
                         <TableHead className="text-slate-900 font-black uppercase text-[10px] tracking-[0.15em] px-6">Date</TableHead>
@@ -22,7 +22,7 @@ const AppliedJobTable = () => {
                         allAppliedJobs.length <= 0 ? (
                             <TableRow>
                                 <TableCell colSpan={4} className="text-center py-20 text-slate-400 font-black uppercase tracking-widest text-[10px]">
-                                    You haven't applied to any jobs yet. Start exploring!
+                                    No applications yet — your next opportunity is a click away.
                                 </TableCell>
                             </TableRow>
                         ) : allAppliedJobs.map((appliedJob) => (

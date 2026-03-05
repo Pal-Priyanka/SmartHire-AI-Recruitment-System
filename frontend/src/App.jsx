@@ -20,84 +20,100 @@ import RecruiterAnalytics from './components/admin/RecruiterAnalytics'
 import RecruiterInterviews from './components/admin/RecruiterInterviews'
 import CandidateInterviews from './components/CandidateInterviews'
 import AuthProtectedRoute from './components/AuthProtectedRoute'
-
+import ErrorBoundary from './components/shared/ErrorBoundary'
+import ResumeOptimizer from './components/ResumeOptimizer'
+import PrepKit from './components/PrepKit'
 
 const appRouter = createBrowserRouter([
   {
     path: '/',
-    element: <Home />
-  },
-  {
-    path: '/login',
-    element: <Login />
-  },
-  {
-    path: '/signup',
-    element: <Signup />
-  },
-  {
-    path: "/jobs",
-    element: <Jobs />
-  },
-  {
-    path: "/description/:id",
-    element: <JobDescription />
-  },
-  {
-    path: "/browse",
-    element: <Browse />
-  },
-  {
-    path: "/profile",
-    element: <AuthProtectedRoute><Profile /></AuthProtectedRoute>
-  },
-  {
-    path: "/interviews",
-    element: <AuthProtectedRoute><CandidateInterviews /></AuthProtectedRoute>
-  },
-  {
-    path: "/saved-jobs",
-    element: <AuthProtectedRoute><SavedJobs /></AuthProtectedRoute>
-  },
-  // admin ke liye yha se start hoga
-  {
-    path: "/admin/companies",
-    element: <ProtectedRoute><Companies /></ProtectedRoute>
-  },
-  {
-    path: "/admin/companies/create",
-    element: <ProtectedRoute><CompanyCreate /></ProtectedRoute>
-  },
-  {
-    path: "/admin/companies/:id",
-    element: <ProtectedRoute><CompanySetup /></ProtectedRoute>
-  },
-  {
-    path: "/admin/jobs",
-    element: <ProtectedRoute><AdminJobs /></ProtectedRoute>
-  },
-  {
-    path: "/admin/jobs/create",
-    element: <ProtectedRoute><PostJob /></ProtectedRoute>
-  },
-  {
-    path: "/admin/jobs/:id",
-    element: <ProtectedRoute><JobSetup /></ProtectedRoute>
-  },
-  {
-    path: "/admin/jobs/:id/applicants",
-    element: <ProtectedRoute><Applicants /></ProtectedRoute>
-  },
-  {
-    path: "/admin/analytics",
-    element: <ProtectedRoute><RecruiterAnalytics /></ProtectedRoute>
-  },
-  {
-    path: "/admin/interviews",
-    element: <ProtectedRoute><RecruiterInterviews /></ProtectedRoute>
-  },
-
+    errorElement: <ErrorBoundary />,
+    children: [
+      {
+        path: '/',
+        element: <Home />
+      },
+      {
+        path: '/login',
+        element: <Login />
+      },
+      {
+        path: '/signup',
+        element: <Signup />
+      },
+      {
+        path: "/jobs",
+        element: <Jobs />
+      },
+      {
+        path: "/description/:id",
+        element: <JobDescription />
+      },
+      {
+        path: "/description/:id/optimize",
+        element: <AuthProtectedRoute><ResumeOptimizer /></AuthProtectedRoute>
+      },
+      {
+        path: "/application/:id/prep-kit",
+        element: <AuthProtectedRoute><PrepKit /></AuthProtectedRoute>
+      },
+      {
+        path: "/browse",
+        element: <Browse />
+      },
+      {
+        path: "/profile",
+        element: <AuthProtectedRoute><Profile /></AuthProtectedRoute>
+      },
+      {
+        path: "/interviews",
+        element: <AuthProtectedRoute><CandidateInterviews /></AuthProtectedRoute>
+      },
+      {
+        path: "/saved-jobs",
+        element: <AuthProtectedRoute><SavedJobs /></AuthProtectedRoute>
+      },
+      // admin ke liye yha se start hoga
+      {
+        path: "/admin/companies",
+        element: <ProtectedRoute><Companies /></ProtectedRoute>
+      },
+      {
+        path: "/admin/companies/create",
+        element: <ProtectedRoute><CompanyCreate /></ProtectedRoute>
+      },
+      {
+        path: "/admin/companies/:id",
+        element: <ProtectedRoute><CompanySetup /></ProtectedRoute>
+      },
+      {
+        path: "/admin/jobs",
+        element: <ProtectedRoute><AdminJobs /></ProtectedRoute>
+      },
+      {
+        path: "/admin/jobs/create",
+        element: <ProtectedRoute><PostJob /></ProtectedRoute>
+      },
+      {
+        path: "/admin/jobs/:id",
+        element: <ProtectedRoute><JobSetup /></ProtectedRoute>
+      },
+      {
+        path: "/admin/jobs/:id/applicants",
+        element: <ProtectedRoute><Applicants /></ProtectedRoute>
+      },
+      {
+        path: "/admin/analytics",
+        element: <ProtectedRoute><RecruiterAnalytics /></ProtectedRoute>
+      },
+      {
+        path: "/admin/interviews",
+        element: <ProtectedRoute><RecruiterInterviews /></ProtectedRoute>
+      },
+    ]
+  }
 ])
+
 function App() {
 
   return (

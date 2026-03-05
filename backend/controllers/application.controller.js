@@ -2,12 +2,15 @@ import { Application } from "../models/application.model.js";
 import { Job } from "../models/job.model.js";
 import { User } from "../models/user.model.js";
 import { createNotification } from "./notification.controller.js";
+import { generatePrepKit } from "../services/ollama.service.js";
 import { extractRawText, parseResume } from "../services/resumeParser.js";
-import { generateMatchInsights } from "../services/nlp.service.js";
+import { generateMatchInsights, generateSpotlightHighlight } from "../services/nlp.service.js";
 import { sendStatusUpdate } from "../services/emailService.js";
 import { Interview } from "../models/interview.model.js";
 import path from "path";
 import fs from "fs";
+import archiver from "archiver";
+import axios from "axios";
 
 export const applyJob = async (req, res) => {
     try {
@@ -63,6 +66,11 @@ export const applyJob = async (req, res) => {
             user
         );
 
+        const highlight = await generateSpotlightHighlight(resumeText, {
+            title: job.title,
+            requirements: job.requirements
+        });
+
         // create a new application
         const newApplication = await Application.create({
             job: jobId,
@@ -70,6 +78,7 @@ export const applyJob = async (req, res) => {
             aiScore: insights.score,
             scoreBreakdown: insights.scoreBreakdown,
             resumeText: resumeText,
+            aiHighlight: highlight,
             // Detailed insights from the NLP engine
             matchingSkills: insights.matchingSkills,
             missingSkills: insights.missingSkills,
@@ -272,6 +281,7 @@ export const withdrawApplication = async (req, res) => {
     try {
         const userId = req.id;
         const jobId = req.params.id;
+        const { reason } = req.body; // Capture optional reason
 
         const application = await Application.findOne({ job: jobId, applicant: userId });
         if (!application) {
@@ -279,6 +289,11 @@ export const withdrawApplication = async (req, res) => {
                 message: "Application not found.",
                 success: false
             });
+        }
+
+        if (reason) {
+            application.withdrawalReason = reason;
+            await application.save();
         }
 
         // Remove application from Job's applications array
@@ -295,6 +310,87 @@ export const withdrawApplication = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+};
+
+export const exportResumes = async (req, res) => {
+    try {
+        const jobId = req.params.id;
+        const job = await Job.findById(jobId).populate({
+            path: 'applications',
+            populate: {
+                path: 'applicant',
+                select: 'fullname profile'
+            }
+        });
+
+        if (!job) {
+            return res.status(404).json({ message: "Job not found", success: false });
+        }
+
+        const archive = archiver('zip', {
+            zlib: { level: 9 }
+        });
+
+        res.attachment(`resumes_${job.title.replace(/\s+/g, '_')}.zip`);
+
+        archive.on('error', (err) => {
+            throw err;
+        });
+
+        archive.pipe(res);
+
+        for (const app of job.applications) {
+            const resumeUrl = app.applicant?.profile?.resume;
+            if (resumeUrl) {
+                try {
+                    const response = await axios.get(resumeUrl, { responseType: 'arraybuffer' });
+                    const fileName = `${app.applicant.fullname.replace(/\s+/g, '_')}_${app.aiScore}%_Match${path.extname(resumeUrl)}`;
+                    archive.append(response.data, { name: fileName });
+                } catch (fetchError) {
+                    console.error(`Failed to fetch resume for ${app.applicant.fullname}:`, fetchError.message);
+                }
+            }
+        }
+
+        await archive.finalize();
+
+    } catch (error) {
+        console.error("Export Error:", error);
+        if (!res.headersSent) {
+            return res.status(500).json({ message: "Failed to generate ZIP archive", success: false });
+        }
+    }
+};
+
+export const getPrepKit = async (req, res) => {
+    try {
+        const applicationId = req.params.id;
+        const userId = req.id;
+
+        const application = await Application.findById(applicationId).populate('job');
+        if (!application) {
+            return res.status(404).json({ message: "Application not found", success: false });
+        }
+
+        if (application.applicant.toString() !== userId) {
+            return res.status(403).json({ message: "Access denied", success: false });
+        }
+
+        const allowedStates = ['accepted', 'interview scheduled', 'interviewed', 'offer extended', 'offer accepted'];
+        if (!allowedStates.includes(application.status.toLowerCase())) {
+            return res.status(400).json({ message: "Prep kit not available for current status", success: false });
+        }
+
+        const user = await User.findById(userId);
+        const resumeText = await extractRawText(user.profile.resume);
+
+        const prepKit = await generatePrepKit(resumeText, application.job);
+
+        return res.status(200).json({ prepKit, success: true });
+    } catch (error) {
+        console.error("PrepKit Error:", error);
         return res.status(500).json({ message: "Internal server error", success: false });
     }
 };

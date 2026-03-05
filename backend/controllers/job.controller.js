@@ -3,6 +3,7 @@ import { User } from "../models/user.model.js";
 import { createNotification } from "./notification.controller.js";
 import { Notification } from "../models/notification.model.js";
 import { generateMatchInsights } from "../services/nlp.service.js";
+import { getResumeOptimization } from "../services/ollama.service.js";
 import { extractRawText, parseResume } from "../services/resumeParser.js";
 import path from "path";
 import { fileURLToPath } from 'url';
@@ -102,14 +103,17 @@ export const getJobById = async (req, res) => {
         });
     }
 }
-// admin kitne job create kra hai abhi tk
+// Return all jobs on the platform for recruiter dashboard
 export const getAdminJobs = async (req, res) => {
     try {
         const adminId = req.id;
-        const jobs = await Job.find({ created_by: adminId }).populate({
+        const jobs = await Job.find({}).populate({
             path: 'company',
-            createdAt: -1
-        });
+        }).populate({
+            path: 'created_by',
+            select: 'fullname email'
+        }).sort({ createdAt: -1 });
+
         if (!jobs) {
             return res.status(404).json({
                 message: "Jobs not found.",
@@ -118,6 +122,7 @@ export const getAdminJobs = async (req, res) => {
         };
         return res.status(200).json({
             jobs,
+            currentRecruiterId: adminId,
             success: true
         })
     } catch (error) {
@@ -191,6 +196,68 @@ export const getJobMatch = async (req, res) => {
     }
 };
 
+export const getJobRecommendations = async (req, res) => {
+    try {
+        const userId = req.id;
+        const user = await User.findById(userId);
+
+        if (!user || !user.profile.resume) {
+            return res.status(400).json({
+                message: "Please upload your resume to get personalized recommendations.",
+                success: false
+            });
+        }
+
+        // 1. Fetch resume text
+        let resumeText = "";
+        let parsedData = {};
+        try {
+            resumeText = await extractRawText(user.profile.resume);
+            parsedData = await parseResume(user.profile.resume) || {};
+        } catch (error) {
+            console.error("Extraction error in recommendations:", error.message);
+        }
+
+        if (!resumeText) {
+            return res.status(400).json({ message: "Could not parse your resume.", success: false });
+        }
+
+        // 2. Fetch all jobs (or a subset)
+        const jobs = await Job.find({ status: 'active' }).populate('company');
+
+        // 3. Rank jobs using rule-based engine (Asynchronous but without Ollama for speed)
+        // We manually call the inner logic or a version of generateMatchInsights that skips Ollama.
+        // For now, we'll use generateMatchInsights but we know it might have a slight delay.
+        // OPTIMIZATION: In a real prod app, we'd pre-calculate these or use a faster vector search.
+
+        const rankedJobs = await Promise.all(jobs.map(async (job) => {
+            // Force rule-based by passing a flag or just accepting the delay
+            // We'll use the existing insights tool
+            const insights = await generateMatchInsights(resumeText, job, parsedData, user);
+            return {
+                ...job._doc,
+                matchScore: insights.score,
+                matchInsights: {
+                    matchingSkills: insights.matchingSkills,
+                    strengthAreas: insights.strengthAreas
+                }
+            };
+        }));
+
+        // Sort by score descending
+        const sortedJobs = rankedJobs.sort((a, b) => b.matchScore - a.matchScore);
+
+        return res.status(200).json({
+            jobs: sortedJobs,
+            success: true
+        });
+
+    } catch (error) {
+        console.error("Recommendations Error:", error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+};
+
 export const updateJob = async (req, res) => {
     try {
         const { title, description, requirements, salary, location, jobType, experience, position, applyBy } = req.body;
@@ -249,6 +316,43 @@ export const deleteJob = async (req, res) => {
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal server error while deleting job", success: false });
+    }
+};
+
+export const getJobOptimization = async (req, res) => {
+    try {
+        const jobId = req.params.id;
+        const userId = req.id;
+
+        const job = await Job.findById(jobId);
+        const user = await User.findById(userId);
+
+        if (!job || !user || !user.profile.resume) {
+            return res.status(400).json({ message: "Job or Resume not found", success: false });
+        }
+
+        const resumeText = await extractRawText(user.profile.resume);
+        if (!resumeText) {
+            return res.status(400).json({ message: "Could not read resume", success: false });
+        }
+
+        const optimization = await getResumeOptimization(resumeText, job);
+
+        if (!optimization) {
+            return res.status(503).json({
+                message: "AI Optimizer is currently busy or unavailable. Try again in a moment.",
+                success: false
+            });
+        }
+
+        return res.status(200).json({
+            optimization,
+            success: true
+        });
+
+    } catch (error) {
+        console.error("Optimization Error:", error);
+        return res.status(500).json({ message: "Internal server error", success: false });
     }
 };
 
